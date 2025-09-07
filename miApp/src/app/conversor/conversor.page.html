@@ -1,0 +1,67 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>conversor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">conversor</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-breadcrumbs>
+      <ion-breadcrumb href="#home">Home</ion-breadcrumb>
+      <ion-breadcrumb href="#conversor">Conversor</ion-breadcrumb>
+  </ion-breadcrumbs>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Conversor de Monedas</ion-card-title>
+      <ion-card-subtitle>Convierta entre diferentes monedas</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="floating">Monto</ion-label>
+        <ion-input type="number" [(ngModel)]="monto" placeholder="0"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Moneda de Origen</ion-label>
+        <ion-select [(ngModel)]="monedaOrigen" placeholder="Seleccionar">
+          <ion-select-option value="ARS">Peso Argentino (ARS)</ion-select-option>
+          <ion-select-option value="USD">Dólar Estadounidense (USD)</ion-select-option>
+          <ion-select-option value="EUR">Euro (EUR)</ion-select-option>
+          <ion-select-option value="CLP">Peso Chileno (CLP)</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>Moneda de Destino</ion-label>
+        <ion-select [(ngModel)]="monedaDestino" placeholder="Seleccionar">
+          <ion-select-option value="ARS">Peso Argentino (ARS)</ion-select-option>
+          <ion-select-option value="USD">Dólar Estadounidense (USD)</ion-select-option>
+          <ion-select-option value="EUR">Euro (EUR)</ion-select-option>
+          <ion-select-option value="CLP">Peso Chileno (CLP)</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-button expand="block" color="primary" (click)="convertir()">Convertir</ion-button>
+      <ion-text *ngIf="resultado !== null" color="primary">
+        <h2>Resultado: {{ resultado | number:'1.2-2' }} {{ monedaDestino }}</h2>
+      </ion-text>
+      <ion-text *ngIf="mensajeError" color="danger">
+        <p>{{ mensajeError }}</p>
+      </ion-text>
+      <ion-grid class="ion-padding">
+        <ion-row>
+          <ion-col size="12" size-md="6" *ngFor="let equivalencia of equivalenciasUsd">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>1 USD = {{ equivalencia.valor | number:'1.2-2' }} {{ equivalencia.moneda }}</ion-card-title>
+              </ion-card-header>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

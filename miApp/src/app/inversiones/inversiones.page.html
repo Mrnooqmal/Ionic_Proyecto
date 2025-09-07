@@ -1,0 +1,77 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>inversiones</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">inversiones</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-breadcrumbs>
+    <ion-breadcrumb href="#home">Home</ion-breadcrumb>
+    <ion-breadcrumb href="#inversiones">Inversiones</ion-breadcrumb>
+  </ion-breadcrumbs>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Simulador de Inversiones</ion-card-title>
+      <ion-card-subtitle>Calcule el crecimiento con interés compuesto diario (TENPO)</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="floating">Monto Inicial ($)</ion-label>
+        <ion-input type="number" [(ngModel)]="montoInicial" placeholder="0"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Monto Adicional ($)</ion-label>
+        <ion-input type="number" [(ngModel)]="montoAdicional" placeholder="0"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Frecuencia de Aportes</ion-label>
+        <ion-select [(ngModel)]="frecuenciaAportes" placeholder="Seleccionar">
+          <ion-select-option value="mensual">Mensual</ion-select-option>
+          <ion-select-option value="anual">Anual</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Tasa de Interés Anual (%)</ion-label>
+        <ion-input type="number" [(ngModel)]="tasaInteres" placeholder="6"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Años</ion-label>
+        <ion-input type="number" [(ngModel)]="anos" placeholder="5"></ion-input>
+      </ion-item>
+      <ion-button expand="block" color="primary" (click)="calcularInversion()">Calcular</ion-button>
+      <ion-text *ngIf="valorFuturo !== null" color="primary">
+        <h2>Resultados</h2>
+        <p>Valor Futuro: ${{ valorFuturo | number:'1.2-2' }}</p>
+        <p>Interés Ganado: ${{ interesGanado | number:'1.2-2' }}</p>
+        <p>Total Invertido: ${{ totalInvertido | number:'1.2-2' }}</p>
+      </ion-text>
+      <ion-text *ngIf="mensajeError" color="danger">
+        <p>{{ mensajeError }}</p>
+      </ion-text>
+      <div *ngIf="valorFuturo !== null" style="width:100%; max-width:600px; margin:auto;">
+        <canvas id="graficoCrecimiento"></canvas>
+      </div>
+      <ion-grid *ngIf="datosAnuales.length > 1" class="ion-padding">
+        <ion-row class="ion-text-center">
+          <ion-col size="4"><strong>Año</strong></ion-col>
+          <ion-col size="4"><strong>Interés Ganado ($)</strong></ion-col>
+          <ion-col size="4"><strong>Saldo Acumulado ($)</strong></ion-col>
+        </ion-row>
+        <ion-row *ngFor="let entrada of datosAnuales" class="ion-text-center">
+          <ion-col size="4">{{ entrada.ano }}</ion-col>
+          <ion-col size="4">{{ entrada.interes | number:'1.2-2' }}</ion-col>
+          <ion-col size="4">{{ entrada.saldo | number:'1.2-2' }}</ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

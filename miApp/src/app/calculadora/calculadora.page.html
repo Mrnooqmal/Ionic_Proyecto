@@ -1,0 +1,52 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>calculadora</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">calculadora</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-breadcrumbs>
+      <ion-breadcrumb href="#home">Home</ion-breadcrumb>
+      <ion-breadcrumb href="#calculadora">Calculadora</ion-breadcrumb>
+  </ion-breadcrumbs>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Calculadora Simple</ion-card-title>
+      <ion-card-subtitle>Ingrese números y seleccione una operación</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+
+      <ion-item>
+        <ion-label position="floating">Primer Número</ion-label>
+        <ion-input type="number" [(ngModel)]="num1" placeholder="0"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="floating">Segundo Número</ion-label>
+        <ion-input type="number" [(ngModel)]="num2" placeholder="0"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Operación</ion-label>
+        <ion-select [(ngModel)]="operation" placeholder="Seleccionar">
+          <ion-select-option value="sum">Sumar</ion-select-option>
+          <ion-select-option value="subtract">Restar</ion-select-option>
+          <ion-select-option value="multiply">Multiplicar</ion-select-option>
+          <ion-select-option value="divide">Dividir</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-button expand="block" color="primary" (click)="calculate()">Calcular</ion-button>
+      <ion-text *ngIf="result !== null" color="primary">
+        <h2>Resultado: {{ result }}</h2>
+      </ion-text>
+      <ion-text *ngIf="errorMessage" color="danger">
+        <p>{{ errorMessage }}</p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
