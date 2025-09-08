@@ -12,7 +12,11 @@ export const routes: Routes = [
   },
   {
     path: 'animales',
-    loadComponent: () => import('./animales/animales.page').then( m => m.AnimalesPage)
+    loadComponent: () => import('./animales/animales.page').then(m => m.AnimalesPage)
+  },
+  {
+    path: 'animales/noticias-animal/:animal',
+    loadComponent: () => import('./animales/noticias-animal/noticias-animal.page').then(m => m.NoticiasAnimalPage)
   },
   {
     path: 'estadisticas',
@@ -37,5 +41,13 @@ export const routes: Routes = [
   {
     path: 'clima',
     loadComponent: () => import('./clima/clima.page').then( m => m.ClimaPage)
-  }
+  },
+  {
+    path: 'superheroes',
+    loadComponent: () => import('./superheroes/superheroes.page').then(m => m.SuperheroesPage)
+  },
+  {
+    path: 'anime',
+    loadComponent: () => import('./anime/anime.page').then(m => m.AnimePage)
+  },
 ];

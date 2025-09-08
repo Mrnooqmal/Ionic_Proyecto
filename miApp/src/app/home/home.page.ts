@@ -90,8 +90,24 @@ export class HomePage {
     {
       titulo: 'Animales',
       descripcion: 'Enciclopedia de Animales',
-      detalles: 'Descripcion aca.',
+      detalles: 'Podrás conocer grandes animales y sus noticias de última hora.',
       ruta: '/animales',
+      icono: 'paw-outline',
+      color: 'success'
+    },
+    {
+      titulo: 'Anime',
+      descripcion: '¿Qué anime eres?',
+      detalles: 'Podrás conocer cuál te tocó ser...',
+      ruta: '/anime',
+      icono: 'paw-outline',
+      color: 'success'
+    },
+    {
+      titulo: 'Superhéroes',
+      descripcion: '¿Qué superhéroe eres?',
+      detalles: 'Podrás conocer cuál te tocó ser...',
+      ruta: '/superheroes',
       icono: 'paw-outline',
       color: 'success'
     }

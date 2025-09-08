@@ -1,0 +1,30 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Anime</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-item lines="none">
+    <ion-label>Descubre qué anime eres</ion-label>
+  </ion-item>
+
+  <ion-button (click)="ObtenerAnime()" expand="block">
+    Descubrir Anime
+  </ion-button>
+
+  <ion-text *ngIf="resultado !== null">
+    <h2>Anime seleccionado: {{ resultado }}</h2>
+    <img [src]="mostrarFotoAnime(resultado)" alt="{{ resultado }}" />
+  </ion-text>
+
+  <ion-button expand="block" routerLink="/">
+    Ir al Inicio
+  </ion-button>
+
+  <ion-button expand="block" routerLink="/superheroes">
+    Ver qué superhéroe eres
+  </ion-button>
+
+</ion-content>
