@@ -18,6 +18,9 @@
     <ion-button (click)="MostrarFotoDc()" expand="block">
       Conocer su logo
     </ion-button>
+    
+    <p *ngIf="mostrarTexto">{{ mostrarTexto }}</p>
+    <img *ngIf="mostrarImagen" [src]="mostrarImagen" alt="Logo Marvel" />
 
     <ion-button expand="block" routerLink="/">
       Ir al Inicio
