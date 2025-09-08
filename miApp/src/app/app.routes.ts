@@ -50,4 +50,12 @@ export const routes: Routes = [
     path: 'anime',
     loadComponent: () => import('./anime/anime.page').then(m => m.AnimePage)
   },
+  {
+    path: 'marvel',
+    loadComponent: () => import('./marvel/marvel.page').then(m => m.MarvelPage)
+  },
+  {
+    path: 'dc',
+    loadComponent: () => import('./dc/dc.page').then(m => m.DcPage)
+  },
 ];

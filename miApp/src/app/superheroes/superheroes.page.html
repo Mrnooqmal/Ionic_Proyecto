@@ -17,6 +17,10 @@
   <ion-text *ngIf="resultado !== null">
     <h2>Superhéroe seleccionado: {{ resultado }}</h2>
     <img [src]="mostrarFotoSuperheroe(resultado)" alt="{{ resultado }}" />
+    <p>Compañía: {{ obtenerCompaniaSuperheroe(resultado) }}</p>
+    <ion-button expand="block" routerLink="/{{ obtenerCompaniaSuperheroe(resultado) === 'Marvel Comics' ? 'marvel' : 'dc' }}">
+      Ir a la compañia {{ obtenerCompaniaSuperheroe(resultado) === 'Marvel Comics' ? 'Marvel' : 'DC' }}
+    </ion-button>
   </ion-text>
 
   <ion-button expand="block" routerLink="/">

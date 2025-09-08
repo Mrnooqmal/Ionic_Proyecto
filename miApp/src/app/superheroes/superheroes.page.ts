@@ -36,7 +36,7 @@ export class SuperheroesPage {
     ];
 
     resultado: string | null = null;
-
+    constructor() { }
     ObtenerSuperheroe() {
         const random = Math.floor(Math.random() * this.superheroes.length);
         this.resultado = this.superheroes[random];
@@ -55,5 +55,22 @@ export class SuperheroesPage {
             default:
                 return '';
         }
+    }
+
+    obtenerCompaniaSuperheroe(superheroe: string): string {
+        switch (superheroe) {
+          case 'Spider-Man':
+          case 'Daredevil':
+          case 'Captain America':
+            return 'Marvel Comics';
+          case 'Batman':
+            return 'DC Comics';
+          default:
+            return '';
+        }
+      }
+      
+
+    ngOnInit() {
     }
 }
