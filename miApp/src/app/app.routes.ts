@@ -58,4 +58,24 @@ export const routes: Routes = [
     path: 'dc',
     loadComponent: () => import('./dc/dc.page').then(m => m.DcPage)
   },
+  {
+    path: 'fichas',
+    loadComponent: () => import('./fichasMedicas/fichas/fichas.page').then(m => m.FichasPage)
+  },
+  {
+    path: 'fichas/crearFichas',
+    loadComponent: () => import('./fichasMedicas/crearFicha/crearFicha.page').then(m => m.CrearFichaPage)
+  },
+  {
+    path: 'fichas/buscarFichas',
+    loadComponent: () => import('./fichasMedicas/buscarFichas/buscarFichas.page').then(m => m.BuscarFichasPage)
+  },
+  {
+    path: 'fichas/verFicha/:id',
+    loadComponent: () => import('./fichasMedicas/verFicha/verFicha.page').then(m => m.VerFichaPage)
+  },
+  {
+    path: 'fichas/editarFicha/:id',
+    loadComponent: () => import('./fichasMedicas/editarFicha/editarFicha.page').then(m => m.EditarFichaPage)
+  },
 ];

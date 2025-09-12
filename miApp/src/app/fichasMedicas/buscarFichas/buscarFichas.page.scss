@@ -1,0 +1,90 @@
+.busqueda-hero {
+  text-align: center;
+  margin: 20px 0 30px 0;
+
+  h2 {
+    color: var(--ion-color-primary);
+    margin: 10px 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin: 10px 0;
+    font-size: 0.9rem;
+  }
+}
+
+ion-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+ion-card-title {
+  color: var(--ion-color-primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+ion-item {
+  --border-radius: 8px;
+  --background: #f8f9fa;
+  margin-bottom: 10px;
+}
+
+ion-label {
+  font-weight: 500;
+  color: var(--ion-color-medium);
+}
+
+ion-input {
+  --color: var(--ion-color-dark);
+  --placeholder-color: var(--ion-color-medium);
+}
+
+ion-searchbar {
+  --background: #f8f9fa;
+  --border-radius: 8px;
+  --box-shadow: none;
+}
+
+ion-list {
+  background: transparent;
+}
+
+ion-list ion-item {
+  --background: white;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+ion-list ion-item h3 {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+  margin: 5px 0;
+}
+
+ion-list ion-item p {
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+  margin: 2px 0;
+}
+
+.sin-resultados {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+
+  p {
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+}

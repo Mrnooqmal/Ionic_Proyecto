@@ -1,0 +1,206 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button routerLink="/fichas/buscarFichas">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Ficha Medica</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="editarFicha()">
+        <ion-icon name="create"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  
+  <div class="paciente-header">
+    <div class="avatar-container">
+      <img src="assets/fotos_fichas/paciente.png" alt="Paciente" class="avatar-paciente" />
+    </div>
+    <div class="info-basica">
+      <h2>{{ficha.nombre}} {{ficha.apellido}}</h2>
+      <p>RUT: {{ficha.rut}}</p>
+      <ion-badge color="danger">{{ficha.tipoSangre}}</ion-badge>
+    </div>
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="person" class="icono-seccion"></ion-icon>
+        Datos del Paciente
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <div class="dato-item">
+              <h4>Nombre Completo</h4>
+              <p>{{ficha.nombre}} {{ficha.apellido}}</p>
+            </div>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <div class="dato-item">
+              <h4>RUT</h4>
+              <p>{{ficha.rut}}</p>
+            </div>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <div class="dato-item">
+              <h4>Tipo de Sangre</h4>
+              <ion-badge color="danger">{{ficha.tipoSangre}}</ion-badge>
+            </div>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <div class="dato-item">
+              <h4>Edad</h4>
+              <p>{{ficha.edad}} años</p>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="medical" class="icono-seccion"></ion-icon>
+        Examenes Medicos
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="info-medica">
+        <p>{{ficha.examenes}}</p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="clipboard" class="icono-seccion"></ion-icon>
+        Consultas
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="info-medica">
+        <p>{{ficha.consultas}}</p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="analytics" class="icono-seccion"></ion-icon>
+        Diagnosticos
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="info-medica">
+        <p>{{ficha.diagnosticos}}</p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="construct" class="icono-seccion"></ion-icon>
+        Procedimientos
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="info-medica">
+        <p>{{ficha.procedimientos}}</p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title class="titulo-pequeño">
+              <ion-icon name="warning" class="icono-seccion"></ion-icon>
+              Alergias
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-medica-pequeña">
+              <p>{{ficha.alergias}}</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="12" size-md="6">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title class="titulo-pequeño">
+              <ion-icon name="cut" class="icono-seccion"></ion-icon>
+              Operaciones
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-medica-pequeña">
+              <p>{{ficha.operaciones}}</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12" size-md="6">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title class="titulo-pequeño">
+              <ion-icon name="fitness" class="icono-seccion"></ion-icon>
+              Medicamentos
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-medica-pequeña">
+              <p>{{ficha.medicamentos}}</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="12" size-md="6">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title class="titulo-pequeño">
+              <ion-icon name="cafe" class="icono-seccion"></ion-icon>
+              Habitos
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-medica-pequeña">
+              <p>{{ficha.habitos}}</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <div class="botones-accion">
+    <ion-button expand="block" color="primary" (click)="editarFicha()">
+      <ion-icon name="create" slot="start"></ion-icon>
+      Editar Ficha
+    </ion-button>
+    
+    <ion-button expand="block" fill="outline" color="medium" (click)="imprimirFicha()">
+      <ion-icon name="print" slot="start"></ion-icon>
+      Imprimir Ficha
+    </ion-button>
+  </div>
+
+</ion-content>

@@ -110,6 +110,14 @@ export class HomePage {
       ruta: '/superheroes',
       icono: 'paw-outline',
       color: 'success'
+    },
+    {
+      titulo: 'Fichas',
+      descripcion: 'Fichas Medicas',
+      detalles: 'Fichas Medicas.',
+      ruta: '/fichas',
+      icono: 'paw-outline',
+      color: 'success'
     }
   ];
 

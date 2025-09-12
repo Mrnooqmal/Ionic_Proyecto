@@ -1,0 +1,75 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button routerLink="/fichas">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Buscar Fichas Medicas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  
+  <div class="busqueda-hero">
+    <h2>Busca las fichas medicas que necesites</h2>
+    <p>Ingresa RUT del paciente para buscar ficha medica</p>
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Busqueda por RUT</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">RUT del Paciente</ion-label>
+        <ion-input 
+          [(ngModel)]="rutBusqueda" 
+          placeholder="21.437.567-3"
+          (ionInput)="buscarPorRut()">
+        </ion-input>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Busqueda por Nombre</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-searchbar 
+        placeholder="Buscar por nombre o apellido"
+        (ionInput)="buscarPorNombre($event)">
+      </ion-searchbar>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="fichasFiltradas.length > 0">
+    <ion-card-header>
+      <ion-card-title>Fichas Medicas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item 
+          *ngFor="let ficha of fichasFiltradas" 
+          button="true" 
+          (click)="verFicha(ficha.id)">
+          
+          <ion-label>
+            <h3>{{ficha.nombre}} {{ficha.apellido}}</h3>
+            <p>RUT: {{ficha.rut}}</p>
+            <p>Tipo de Sangre: {{ficha.tipoSangre}}</p>
+          </ion-label>
+          
+          <ion-icon name="eye" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="fichasFiltradas.length === 0 && busquedaRealizada" class="sin-resultados">
+    <ion-icon name="search" size="large"></ion-icon>
+    <p>No se encontraron fichas medicas</p>
+  </div>
+
+</ion-content>

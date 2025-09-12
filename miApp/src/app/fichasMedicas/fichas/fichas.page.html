@@ -1,0 +1,46 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Fichas Medicas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/home">
+        <ion-icon name="home"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-breadcrumbs>
+      <ion-breadcrumb href="#home">Home</ion-breadcrumb>
+      <ion-breadcrumb href="#fichas">Fichas Medicas</ion-breadcrumb>
+  </ion-breadcrumbs>
+    
+
+  <div class="hero-section">
+    <img src="assets/fotos_fichas/fichas.jpg" alt="Fichas Medicas" class="hero-image" />
+    <h1>Sistema de Fichas Medicas</h1>
+    <p>Gestiona la informacion medica de tus pacientes</p>
+  </div>
+
+  <div class="menu-cards">
+    <ion-card button="true" routerLink="/fichas/crearFichas">
+      <ion-card-header>
+        <ion-card-title>Crear Ficha</ion-card-title>
+        <ion-card-subtitle>Nueva ficha medica</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-icon name="add-circle" size="large" color="primary"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card button="true" routerLink="/fichas/buscarFichas">
+      <ion-card-header>
+        <ion-card-title>Buscar Fichas</ion-card-title>
+        <ion-card-subtitle>Encuentra pacientes</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-icon name="search" size="large" color="secondary"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

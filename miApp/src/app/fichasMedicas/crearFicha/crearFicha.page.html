@@ -1,0 +1,104 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button routerLink="/fichas">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Creacion ficha medica</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-breadcrumbs>
+      <ion-breadcrumb href="#home">Home</ion-breadcrumb>
+      <ion-breadcrumb href="#fichas">Fichas Medicas</ion-breadcrumb>
+      <ion-breadcrumb href="#fichas/crearFichas">Crear Ficha</ion-breadcrumb>
+  </ion-breadcrumbs>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Fichas Medicas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-item>
+              <ion-label position="stacked">Nombre</ion-label>
+              <ion-input [(ngModel)]="nombre" placeholder="Ingresa el nombre"></ion-input>
+            </ion-item>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-item>
+              <ion-label position="stacked">Apellido</ion-label>
+              <ion-input [(ngModel)]="apellido" placeholder="Ingresa el apellido"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12">
+            <ion-item>
+              <ion-label position="stacked">Datos Paciente</ion-label>
+              <ion-input [(ngModel)]="datosPaciente" placeholder="RUT, telefono, direccion"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Informacion Medica</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      
+      <ion-item>
+        <ion-label position="stacked">Examenes medicos</ion-label>
+        <ion-textarea [(ngModel)]="examenes" placeholder="Describe los examenes realizados" rows="3"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Consultas</ion-label>
+        <ion-textarea [(ngModel)]="consultas" placeholder="Historial de consultas" rows="3"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Diagnosticos</ion-label>
+        <ion-textarea [(ngModel)]="diagnosticos" placeholder="Diagnosticos medicos" rows="3"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Procedimientos</ion-label>
+        <ion-textarea [(ngModel)]="procedimientos" placeholder="Procedimientos realizados" rows="3"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Alergias</ion-label>
+        <ion-textarea [(ngModel)]="alergias" placeholder="Alergias conocidas" rows="2"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Operaciones</ion-label>
+        <ion-textarea [(ngModel)]="operaciones" placeholder="Operaciones realizadas" rows="2"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Medicamentos</ion-label>
+        <ion-textarea [(ngModel)]="medicamentos" placeholder="Medicamentos actuales" rows="2"></ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Habitos</ion-label>
+        <ion-textarea [(ngModel)]="habitos" placeholder="Habitos del paciente" rows="2"></ion-textarea>
+      </ion-item>
+
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button expand="block" color="primary" (click)="guardarFicha()" class="boton-guardar">
+    Guardar Ficha
+  </ion-button>
+
+</ion-content>
