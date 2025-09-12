@@ -1,0 +1,36 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Pacientes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Pacientes</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list>
+    <ion-card *ngFor="let patient of patients">
+      <ion-card-header>
+        <ion-card-title>{{ patient.name }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Fecha de Nacimiento:</strong> {{ patient.birthDate }}</p>
+        <p><strong>Correo:</strong> {{ patient.email }}</p>
+        <p><strong>Teléfono:</strong> {{ patient.phone }}</p>
+        <p><strong>Dirección:</strong> {{ patient.address }}</p>
+        <p><strong>Sexo:</strong> {{ patient.sex }}</p>
+        <p><strong>Nacionalidad:</strong> {{ patient.nationality }}</p>
+        <p><strong>Ocupación:</strong> {{ patient.occupation }}</p>
+        <p><strong>Previsión:</strong> {{ patient.prevision }}</p>
+        <p><strong>Tipo de Sangre:</strong> {{ patient.bloodType }}</p>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+
+    <ion-button expand="block" routerLink="/agregarpaciente" style="margin: 10px;">
+      Agregar Pacientes
+    </ion-button>
+</ion-content>

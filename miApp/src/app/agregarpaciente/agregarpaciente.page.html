@@ -1,0 +1,73 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Agregar Paciente</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Agregar Paciente</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list>
+    <ion-item>
+      <ion-label position="stacked">Nombre</ion-label>
+      <ion-input [(ngModel)]="patient.name" type="text" placeholder="Ingrese nombre"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Fecha de Nacimiento</ion-label>
+      <ion-input [(ngModel)]="patient.birthDate" type="date"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Correo</ion-label>
+      <ion-input [(ngModel)]="patient.email" type="email" placeholder="Ingrese correo"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Teléfono</ion-label>
+      <ion-input [(ngModel)]="patient.phone" type="tel" placeholder="Ingrese teléfono"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Dirección</ion-label>
+      <ion-input [(ngModel)]="patient.address" type="text" placeholder="Ingrese dirección"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Sexo</ion-label>
+      <ion-select [(ngModel)]="patient.sex" placeholder="Seleccione sexo">
+        <ion-select-option value="Masculino">Masculino</ion-select-option>
+        <ion-select-option value="Femenino">Femenino</ion-select-option>
+        <ion-select-option value="Otro">Otro</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Nacionalidad</ion-label>
+      <ion-input [(ngModel)]="patient.nationality" type="text" placeholder="Ingrese nacionalidad"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Ocupación</ion-label>
+      <ion-input [(ngModel)]="patient.occupation" type="text" placeholder="Ingrese ocupación"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Previsión</ion-label>
+      <ion-input [(ngModel)]="patient.prevision" type="text" placeholder="Ingrese previsión"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Tipo de Sangre</ion-label>
+      <ion-select [(ngModel)]="patient.bloodType" placeholder="Seleccione tipo de sangre">
+        <ion-select-option value="O+">O+</ion-select-option>
+        <ion-select-option value="O-">O-</ion-select-option>
+        <ion-select-option value="A+">A+</ion-select-option>
+        <ion-select-option value="A-">A-</ion-select-option>
+        <ion-select-option value="B+">B+</ion-select-option>
+        <ion-select-option value="B-">B-</ion-select-option>
+        <ion-select-option value="AB+">AB+</ion-select-option>
+        <ion-select-option value="AB-">AB-</ion-select-option>
+      </ion-select>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="block" (click)="onSubmit()" style="margin: 10px;">
+    Guardar Paciente
+  </ion-button>
+</ion-content>
