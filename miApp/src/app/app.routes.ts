@@ -12,11 +12,7 @@ export const routes: Routes = [
   },
   {
     path: 'animales',
-    loadComponent: () => import('./animales/animales.page').then(m => m.AnimalesPage)
-  },
-  {
-    path: 'animales/noticias-animal/:animal',
-    loadComponent: () => import('./animales/noticias-animal/noticias-animal.page').then(m => m.NoticiasAnimalPage)
+    loadComponent: () => import('./animales/animales.page').then( m => m.AnimalesPage)
   },
   {
     path: 'estadisticas',
@@ -43,20 +39,12 @@ export const routes: Routes = [
     loadComponent: () => import('./clima/clima.page').then( m => m.ClimaPage)
   },
   {
-    path: 'superheroes',
-    loadComponent: () => import('./superheroes/superheroes.page').then(m => m.SuperheroesPage)
+    path: 'pacientes',
+    loadComponent: () => import('./pacientes/pacientes.page').then( m => m.PacientesPage)
   },
   {
-    path: 'anime',
-    loadComponent: () => import('./anime/anime.page').then(m => m.AnimePage)
-  },
-  {
-    path: 'marvel',
-    loadComponent: () => import('./marvel/marvel.page').then(m => m.MarvelPage)
-  },
-  {
-    path: 'dc',
-    loadComponent: () => import('./dc/dc.page').then(m => m.DcPage)
+    path: 'agregarpaciente',
+    loadComponent: () => import('./agregarpaciente/agregarpaciente.page').then( m => m.AgregarpacientePage)
   },
   {
     path: 'fichas',
@@ -77,5 +65,6 @@ export const routes: Routes = [
   {
     path: 'fichas/editarFicha/:id',
     loadComponent: () => import('./fichasMedicas/editarFicha/editarFicha.page').then(m => m.EditarFichaPage)
-  },
+  }
+
 ];

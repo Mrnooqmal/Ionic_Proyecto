@@ -1,37 +1,22 @@
-  <ion-header [translucent]="true">
+<ion-header [translucent]="true">
     <ion-toolbar>
-      <ion-title>Animales</ion-title>
+      <ion-title>Conteo de animales</ion-title>
     </ion-toolbar>
   </ion-header>
   
   <ion-content [fullscreen]="true" class="ion-padding">
     <ion-item>
-        <ion-label position="floating">Selecciona el animal que quieres ver</ion-label>+
-        <ion-select [(ngModel)]="AnimalSeleccionado" placeholder="Seleccionar">
-          <ion-select-option value="Gato">Gato</ion-select-option>
-          <ion-select-option value="Perro">Perro</ion-select-option>
-          <ion-select-option value="Conejo">Conejo</ion-select-option>
-          <ion-select-option value="Capibara">Capibara</ion-select-option>
-        </ion-select>
+        <ion-label position="floating">Contar animales</ion-label>
+        <ion-input type="number" [(ngModel)]="numero_animales"></ion-input>
     </ion-item>
 
-    <ion-text *ngIf="AnimalSeleccionado !== null">
-      <h2>Animal seleccionado: {{ AnimalSeleccionado }}</h2>
-      <p>Descripción del animal: {{ obtenerDescripcionAnimal(AnimalSeleccionado) }}</p>
-      <img *ngIf="AnimalSeleccionado !== null" [src]="mostrarFotoAnimal(AnimalSeleccionado)" alt="{{ AnimalSeleccionado }}" />
-      <ion-button
-        *ngIf="AnimalSeleccionado"
-          [routerLink]="['/animales/noticias-animal', AnimalSeleccionado]"
-        expand="block"
-      >
-        Ver las últimas noticias de este animal
-      </ion-button>
+    <ion-text *ngIf="numero_animales !== null">
+      <h2>Resultado: {{ numero_animales }} animales en total</h2>
     </ion-text>
-
-
-
+  
   <ion-button expand="block" routerLink="/">
     Ir al Inicio
   </ion-button>
+  
   </ion-content>
   

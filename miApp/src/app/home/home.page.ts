@@ -40,81 +40,17 @@ interface PaginaInfo {
 export class HomePage {
   paginas: PaginaInfo[] = [
     {
-      titulo: 'Estadísticas',
-      descripcion: 'Análisis de Datos',
-      detalles: 'Visualiza y analiza datos estadísticos con gráficos interactivos y métricas detalladas.',
-      ruta: '/estadisticas',
-      icono: 'bar-chart-outline',
-      color: 'primary'
-    },
-    {
-      titulo: 'Calculadora',
-      descripcion: 'Calculadora Científica',
-      detalles: 'Realiza cálculos básicos con una interfaz intuitiva y fácil de usar.',
-      ruta: '/calculadora',
-      icono: 'calculator-outline',
-      color: 'tertiary'
-    },
-    {
-      titulo: 'Inversiones',
-      descripcion: 'Simulador de Inversiones',
-      detalles: 'Calcula el crecimiento de tus inversiones con interés compuesto y diferentes frecuencias de aportes.',
-      ruta: '/inversiones',
-      icono: 'trending-up-outline',
-      color: 'warning'
-    },
-    {
-      titulo: 'Tareas',
-      descripcion: 'Gestor de Tareas',
-      detalles: 'Organiza y gestiona tus tareas diarias con seguimiento visual de progreso.',
-      ruta: '/tareas',
-      icono: 'checkbox-outline',
-      color: 'secondary'
-    },
-    {
-      titulo: 'Conversor',
-      descripcion: 'Conversor de Monedas',
-      detalles: 'Convierte entre diferentes monedas con tipos de cambio actualizados.',
-      ruta: '/conversor',
-      icono: 'swap-horizontal-outline',
-      color: 'medium'
-    },
-    {
-      titulo: 'Clima',
-      descripcion: 'Dashboard del Clima',
-      detalles: 'Consulta las condiciones climáticas actuales de diferentes ciudades de Chile.',
-      ruta: '/clima',
-      icono: 'cloudy-outline',
-      color: 'dark'
-    },
-    {
-      titulo: 'Animales',
-      descripcion: 'Enciclopedia de Animales',
-      detalles: 'Podrás conocer grandes animales y sus noticias de última hora.',
-      ruta: '/animales',
+      titulo: 'Pacientes',
+      descripcion: 'Enciclopedia de Pacientes',
+      detalles: 'Datos de pacientes almacenados.',
+      ruta: '/pacientes',
       icono: 'paw-outline',
       color: 'success'
     },
     {
-      titulo: 'Anime',
-      descripcion: '¿Qué anime eres?',
-      detalles: 'Podrás conocer cuál te tocó ser...',
-      ruta: '/anime',
-      icono: 'paw-outline',
-      color: 'success'
-    },
-    {
-      titulo: 'Superhéroes',
-      descripcion: '¿Qué superhéroe eres?',
-      detalles: 'Podrás conocer cuál te tocó ser...',
-      ruta: '/superheroes',
-      icono: 'paw-outline',
-      color: 'success'
-    },
-    {
-      titulo: 'Fichas',
-      descripcion: 'Fichas Medicas',
-      detalles: 'Fichas Medicas.',
+      titulo: 'Fichas Médicas',
+      descripcion: 'Enciclopedia de Fichas Médicas',
+      detalles: 'Datos de fichas médicas almacenados.',
       ruta: '/fichas',
       icono: 'paw-outline',
       color: 'success'
