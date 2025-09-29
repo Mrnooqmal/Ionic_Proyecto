@@ -6,9 +6,7 @@ export const environment = {
   production: false,
 
   database: {
-
-
-    host: '54.163.204.241', //ip_publica_ec2 , remplazar cada que cambie
+    host: '52.90.231.122', //ip_publica_ec2 , remplazar cada que cambie
     // para conectarse luego remotamente: mysql -h [ip_publica_ec2] -u meditrack_user -p , y luego password: PasswordSeguro123!
     port: 3306,
     database: 'MediTrack',
@@ -19,7 +17,6 @@ export const environment = {
   apiUrls: {
     pacientes: 'http://localhost:3001/api',
   }
-  
 };
 /*
  * For easier debugging in development mode, you can import the following file
@@ -29,5 +26,4 @@ export const environment = {
  * on performance if an error is thrown.
  */
 // import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
-
 

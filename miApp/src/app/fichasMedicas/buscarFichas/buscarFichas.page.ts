@@ -1,9 +1,10 @@
+import { CrearPaciente } from "./../crear-paciente/crear-paciente.page";
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
   IonButtons, IonIcon,
-  IonCardTitle
+  IonCardTitle, IonBackButton
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
@@ -24,7 +25,7 @@ import { PacientesService, Paciente } from '../../../core/servicios/pacientes.se
     IonContent, IonHeader, IonTitle, IonToolbar, 
     IonButton, IonButtons, IonIcon, IonCardTitle,
     BusquedaPacientesComponent,
-    ListaPacientesFamiliaComponent
+    ListaPacientesFamiliaComponent, IonBackButton
   ]
 })
 export class BuscarFichasPage implements OnInit {
@@ -93,6 +94,6 @@ export class BuscarFichasPage implements OnInit {
   }
 
   onAgregarPaciente() {
-    this.router.navigate(['/fichas/crearFichas']);
+    this.router.navigate(['/fichas/crear-paciente']);
   }
 }

@@ -1,0 +1,17 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/fichas/verFicha/' + pacienteId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Editar Paciente</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <app-formulario-paciente
+    modo="editar"
+    [pacienteId]="pacienteId"
+    (guardado)="onPacienteGuardado($event)"
+    (cancelado)="onFormularioCancelado()">
+  </app-formulario-paciente>
+</ion-content>

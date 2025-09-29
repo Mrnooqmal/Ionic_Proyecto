@@ -177,7 +177,7 @@ export class PacientesService extends BaseMysqlService {
   }
 
   // Crear nuevo paciente
-  crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
+  /*crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
     const nuevoPaciente: Paciente = {
       ...paciente,
       idPaciente: this.pacientesSimulados.length + 1,
@@ -188,6 +188,11 @@ export class PacientesService extends BaseMysqlService {
     this.pacientesSimulados.push(nuevoPaciente);
     console.log('Paciente creado:', nuevoPaciente);
     return of(nuevoPaciente);
+  }*/
+
+  crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
+    console.log('Enviando paciente a MySQL API:', paciente);
+    return this.post<Paciente>('pacientes', paciente);
   }
 
   // Actualizar paciente
