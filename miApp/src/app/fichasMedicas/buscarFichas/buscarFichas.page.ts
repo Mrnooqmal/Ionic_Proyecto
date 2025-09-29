@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
-  IonButtons, IonIcon,
+  IonButtons,
   IonCardTitle, IonBackButton
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
@@ -23,7 +23,7 @@ import { PacientesService, Paciente } from '../../../core/servicios/pacientes.se
   imports: [
     CommonModule, 
     IonContent, IonHeader, IonTitle, IonToolbar, 
-    IonButton, IonButtons, IonIcon, IonCardTitle,
+    IonButton, IonButtons, IonCardTitle,
     BusquedaPacientesComponent,
     ListaPacientesFamiliaComponent, IonBackButton
   ]
