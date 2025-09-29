@@ -56,7 +56,7 @@ export class FormularioPacienteComponent implements OnInit {
     this.cargando = true;
     this.pacientesService.getPacienteById(this.pacienteId!).subscribe({
       next: (ficha) => {
-        this.paciente = { ...ficha.paciente };
+        this.paciente = { ...ficha.idPaciente && { idPaciente: ficha.idPaciente }, ...ficha };
         this.cargando = false;
       },
       error: (error) => {

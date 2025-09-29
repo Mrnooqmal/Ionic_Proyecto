@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs'; 
 import { BaseMysqlService } from './base_mysql.service';
 
 export interface Paciente {
@@ -36,89 +36,64 @@ export interface FichaMedicaCompleta {
 })
 export class PacientesService extends BaseMysqlService {
 
-  // Datos simulados TEMPORALES - luego se conectarán a MySQL
-  private pacientesSimulados: Paciente[] = [
-    {
-      idPaciente: 1,
-      nombrePaciente: 'Miguel Torres',
-      fechaNacimiento: '1989-05-15',
-      correo: 'miguel@email.com',
-      telefono: '+56912345678',
-      direccion: 'Av. Principal 123',
-      sexo: 'masculino',
-      nacionalidad: 'Chilena',
-      ocupacion: 'Ingeniero',
-      prevision: 'FONASA',
-      fotoPerfil: 'https://wallpapers.com/images/hd/cute-cats-pictures-hjlsa0ha0260veg4.jpg', 
-      tipoSangre: 'AB-',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      idPaciente: 2,
-      nombrePaciente: 'Ana García',
-      fechaNacimiento: '1992-08-20',
-      correo: 'ana.garcia@email.com',
-      telefono: '+56987654321',
-      direccion: 'Calle Secundaria 456',
-      sexo: 'femenino',
-      nacionalidad: 'Chilena',
-      ocupacion: 'Doctora',
-      prevision: 'ISAPRE',
-      fotoPerfil: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKhffnAV6-AVnyZgD8LfZQZYE3BFCJGc1uIQ&s',
-      tipoSangre: 'O+',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
-
   constructor(http: HttpClient) {
     super(http);
   }
 
-  // Obtener todos los pacientes
   getPacientes(): Observable<Paciente[]> {
-    //datos simulados
-    //console.log('Obteniendo pacientes desde servicio');
-    //return of(this.pacientesSimulados);
-    
-    //conexión a MySQL
     return this.get<Paciente[]>('pacientes');
-
   }
 
-  // Obtener paciente por ID con toda su ficha
-  getPacienteById(id: number): Observable<FichaMedicaCompleta> {
+  getPacienteById(id: number): Observable<Paciente> {
+    console.log(`Obteniendo paciente ID: ${id}`);
+    return this.get<Paciente>(`pacientes/${id}`);
+  }
+
+  crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
+    console.log('Enviando paciente a MySQL API:', paciente);
+    return this.post<Paciente>('pacientes', paciente);
+  }
+
+  actualizarPaciente(id: number, cambios: Partial<Paciente>): Observable<Paciente> {
+    console.log(`Actualizando paciente ID ${id} en MySQL:`, cambios);
+    return this.put<Paciente>(`pacientes/${id}`, cambios);
+  }
+
+  eliminarPaciente(id: number): Observable<void> {
+    console.log(`Eliminando paciente ID ${id} de MySQL`);
+    return this.delete<void>(`pacientes/${id}`);
+  }
+
+  getFichaMedicaCompleta(id: number): Observable<FichaMedicaCompleta> {
     console.log(`Obteniendo ficha completa para paciente ID: ${id}`);
     
-    const paciente = this.pacientesSimulados.find(p => p.idPaciente === id);
-    
-    if (!paciente) {
-      throw new Error('Paciente no encontrado');
-    }
-
-    // Simulamos datos de todas las tablas relacionadas
-    const fichaCompleta: FichaMedicaCompleta = {
-      paciente: paciente,
-      alergias: this.getAlergiasSimuladas(id),
-      habitos: this.getHabitosSimulados(id),
-      medicamentos: this.getMedicamentosSimulados(id),
-      consultas: this.getConsultasSimuladas(id),
-      examenes: this.getExamenesSimulados(id),
-      diagnosticos: this.getDiagnosticosSimulados(id),
-      procedimientos: this.getProcedimientosSimulados(id)
-    };
-
-    return of(fichaCompleta);
+    return new Observable(observer => {
+      this.getPacienteById(id).subscribe({
+        next: (pacienteReal) => {
+          const fichaCompleta: FichaMedicaCompleta = {
+            paciente: pacienteReal,
+            alergias: this.getAlergiasSimuladas(id),
+            habitos: this.getHabitosSimulados(id),
+            medicamentos: this.getMedicamentosSimulados(id),
+            consultas: this.getConsultasSimuladas(id),
+            examenes: this.getExamenesSimulados(id),
+            diagnosticos: this.getDiagnosticosSimulados(id),
+            procedimientos: this.getProcedimientosSimulados(id)
+          };
+          observer.next(fichaCompleta);
+          observer.complete();
+        },
+        error: (error) => observer.error(error)
+      });
+    });
   }
 
   private getAlergiasSimuladas(pacienteId: number): any[] {
     const alergiasBase = [
       { idAlergia: 1, alergia: 'Penicilina', observacion: 'Reacción severa' },
-      { idAlergia: 2, alergia: 'Mariscos', observacion: 'Urticaria' },
-      { idAlergia: 3, alergia: 'Polvo', observacion: 'Estornudos' }
+      { idAlergia: 2, alergia: 'Mariscos', observacion: 'Urticaria' }
     ];
-    return alergiasBase.slice(0, pacienteId + 1);
+    return alergiasBase.slice(0, 2);
   }
 
   private getHabitosSimulados(pacienteId: number): any[] {
@@ -130,7 +105,8 @@ export class PacientesService extends BaseMysqlService {
 
   private getMedicamentosSimulados(pacienteId: number): any[] {
     return [
-      { idMedicamento: 1, nombreMedicamento: 'Enalapril 10mg', frecuencia: '1 vez al día' }
+      { idMedicamento: 1, nombreMedicamento: 'Enalapril 10mg', frecuencia: '1 vez al día' },
+      { idMedicamento: 2, nombreMedicamento: 'Omeprazol 20mg', frecuencia: 'Antes del desayuno' }
     ];
   }
 
@@ -140,7 +116,8 @@ export class PacientesService extends BaseMysqlService {
         idConsulta: 1, 
         motivo: 'Control de rutina anual', 
         fechaIngreso: '2024-01-15',
-        profesional: 'Dr. Carlos López'
+        profesional: 'Dr. Carlos López',
+        diagnostico: 'Estado de salud general bueno'
       }
     ];
   }
@@ -151,7 +128,15 @@ export class PacientesService extends BaseMysqlService {
         idExamen: 1, 
         nombreExamen: 'Hemograma completo', 
         fecha: '2024-01-10',
-        resultado: 'Dentro de rangos normales'
+        resultado: 'Dentro de rangos normales',
+        valores: 'Hemoglobina: 14.2 g/dL'
+      },
+      { 
+        idExamen: 2, 
+        nombreExamen: 'Perfil lipídico', 
+        fecha: '2024-01-10',
+        resultado: 'Colesterol LDL elevado',
+        valores: 'LDL: 150 mg/dL'
       }
     ];
   }
@@ -161,7 +146,8 @@ export class PacientesService extends BaseMysqlService {
       { 
         idDiagnostico: 1, 
         diagnostico: 'Hipertensión arterial leve',
-        fecha: '2024-01-15'
+        fecha: '2024-01-15',
+        estado: 'Controlado'
       }
     ];
   }
@@ -171,58 +157,9 @@ export class PacientesService extends BaseMysqlService {
       { 
         idProcedimiento: 1, 
         nombreProcedimiento: 'Consulta general',
-        fecha: '2024-01-15'
+        fecha: '2024-01-15',
+        resultado: 'Paciente estable'
       }
     ];
-  }
-
-  // Crear nuevo paciente
-  /*crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
-    const nuevoPaciente: Paciente = {
-      ...paciente,
-      idPaciente: this.pacientesSimulados.length + 1,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    this.pacientesSimulados.push(nuevoPaciente);
-    console.log('Paciente creado:', nuevoPaciente);
-    return of(nuevoPaciente);
-  }*/
-
-  crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
-    console.log('Enviando paciente a MySQL API:', paciente);
-    return this.post<Paciente>('pacientes', paciente);
-  }
-
-  // Actualizar paciente
-  actualizarPaciente(id: number, cambios: Partial<Paciente>): Observable<Paciente> {
-    const index = this.pacientesSimulados.findIndex(p => p.idPaciente === id);
-    
-    if (index === -1) {
-      throw new Error('Paciente no encontrado');
-    }
-
-    this.pacientesSimulados[index] = {
-      ...this.pacientesSimulados[index],
-      ...cambios,
-      updated_at: new Date().toISOString()
-    };
-
-    console.log('Paciente actualizado:', this.pacientesSimulados[index]);
-    return of(this.pacientesSimulados[index]);
-  }
-
-  // Eliminar paciente
-  eliminarPaciente(id: number): Observable<void> {
-    const index = this.pacientesSimulados.findIndex(p => p.idPaciente === id);
-    
-    if (index === -1) {
-      throw new Error('Paciente no encontrado');
-    }
-
-    this.pacientesSimulados.splice(index, 1);
-    console.log(`Paciente ID: ${id} eliminado`);
-    return of(void 0);
   }
 }
