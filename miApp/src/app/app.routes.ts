@@ -7,44 +7,8 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'fichas',
     pathMatch: 'full',
-  },
-  {
-    path: 'animales',
-    loadComponent: () => import('./animales/animales.page').then( m => m.AnimalesPage)
-  },
-  {
-    path: 'estadisticas',
-    loadComponent: () => import('./estadisticas/estadisticas.page').then( m => m.EstadisticasPage)
-  },
-  {
-    path: 'calculadora',
-    loadComponent: () => import('./calculadora/calculadora.page').then( m => m.CalculadoraPage)
-  },
-  {
-    path: 'inversiones',
-    loadComponent: () => import('./inversiones/inversiones.page').then( m => m.InversionesPage)
-  },
-  {
-    path: 'tareas',
-    loadComponent: () => import('./tareas/tareas.page').then( m => m.TareasPage)
-  },
-  {
-    path: 'conversor',
-    loadComponent: () => import('./conversor/conversor.page').then( m => m.ConversorPage)
-  },
-  {
-    path: 'clima',
-    loadComponent: () => import('./clima/clima.page').then( m => m.ClimaPage)
-  },
-  {
-    path: 'pacientes',
-    loadComponent: () => import('./pacientes/pacientes.page').then( m => m.PacientesPage)
-  },
-  {
-    path: 'agregarpaciente',
-    loadComponent: () => import('./agregarpaciente/agregarpaciente.page').then( m => m.AgregarpacientePage)
   },
   {
     path: 'fichas',

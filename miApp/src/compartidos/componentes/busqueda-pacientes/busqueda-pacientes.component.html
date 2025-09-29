@@ -1,0 +1,46 @@
+<div class="busqueda-container">
+  <ion-searchbar 
+    [value]="terminoBusqueda"
+    (ionInput)="onBusquedaChange($event)"
+    placeholder="Buscar por nombre, email, teléfono..."
+    animated="true"
+    debounce="300">
+  </ion-searchbar>
+</div>
+
+<!-- Estado de carga -->
+<div *ngIf="cargando" class="cargando-container">
+  <ion-spinner name="crescent"></ion-spinner>
+  <p>Cargando pacientes...</p>
+</div>
+
+<!-- Estado de error -->
+<div *ngIf="error && !cargando" class="error-container">
+  <ion-card color="danger">
+    <ion-card-content>
+      <p>{{ error }}</p>
+      <ion-button (click)="onRecargar()" fill="clear" color="light">
+        Reintentar
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</div>
+
+<!-- Resultados de búsqueda -->
+<div *ngIf="!cargando && !error">
+  
+  <!-- Contador de resultados -->
+  <div class="resultados-info">
+    <ion-text color="medium">
+      <small>
+        {{ pacientesFiltrados }} 
+        {{ pacientesFiltrados === 1 ? 'paciente encontrado' : 'pacientes encontrados' }}
+        <span *ngIf="terminoBusqueda">para "{{ terminoBusqueda }}"</span>
+      </small>
+    </ion-text>
+    <ion-button *ngIf="terminoBusqueda" fill="clear" size="small" (click)="onLimpiarBusqueda()">
+      Limpiar
+    </ion-button>
+  </div>
+
+</div>

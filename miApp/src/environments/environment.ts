@@ -3,9 +3,24 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
-};
+  production: false,
 
+  database: {
+
+
+    host: '54.163.204.241', //ip_publica_ec2 , remplazar cada que cambie
+    // para conectarse luego remotamente: mysql -h [ip_publica_ec2] -u meditrack_user -p , y luego password: PasswordSeguro123!
+    port: 3306,
+    database: 'MediTrack',
+    username: 'meditrack_user',
+    password: 'PasswordSeguro123!'
+  },
+  // Para desarrollo inicial con JSON Server
+  apiUrls: {
+    pacientes: 'http://localhost:3001/api',
+  }
+  
+};
 /*
  * For easier debugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
@@ -14,3 +29,5 @@ export const environment = {
  * on performance if an error is thrown.
  */
 // import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
+
+

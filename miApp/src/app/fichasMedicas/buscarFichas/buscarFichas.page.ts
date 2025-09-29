@@ -1,85 +1,98 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonButton, IonButtons, IonIcon, IonItem, IonLabel, IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonSearchbar, IonList } from '@ionic/angular/standalone';
-import { RouterModule, Router } from '@angular/router';
+import { 
+  IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
+  IonButtons, IonIcon,
+  IonCardTitle
+} from '@ionic/angular/standalone';
+import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { arrowBack, search, eye } from 'ionicons/icons';
+import { arrowBack } from 'ionicons/icons';
 
-interface FichaMedica {
-  id: number;
-  nombre: string;
-  apellido: string;
-  rut: string;
-  tipoSangre: string;
-}
+import { BusquedaPacientesComponent } from '../../../compartidos/componentes/busqueda-pacientes/busqueda-pacientes.component';
+import { ListaPacientesFamiliaComponent } from '../../../compartidos/componentes/lista-pacientes-familia/lista-pacientes-familia.component';
+import { PacientesService, Paciente } from '../../../core/servicios/pacientes.service';
+
 
 @Component({
   selector: 'app-buscar-fichas',
   templateUrl: './buscarFichas.page.html',
   styleUrls: ['./buscarFichas.page.scss'],
   standalone: true,
-  imports: [RouterModule, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonButtons, IonIcon, IonItem, IonLabel, IonInput, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonSearchbar, IonList]
+  imports: [
+    CommonModule, 
+    IonContent, IonHeader, IonTitle, IonToolbar, 
+    IonButton, IonButtons, IonIcon, IonCardTitle,
+    BusquedaPacientesComponent,
+    ListaPacientesFamiliaComponent
+  ]
 })
 export class BuscarFichasPage implements OnInit {
   
-  rutBusqueda: string = '';
-  busquedaRealizada: boolean = false;
-  
-  fichasEjemplo: FichaMedica[] = [
-    { id: 1, nombre: 'Miguel', apellido: 'Torres', rut: '21.437.567-3', tipoSangre: 'AB-' },
-    { id: 2, nombre: 'Maria', apellido: 'Rodriguez', rut: '18.234.567-8', tipoSangre: 'O+' },
-    { id: 3, nombre: 'Pablo', apellido: 'Lopez', rut: '19.876.543-2', tipoSangre: 'A+' },
-    { id: 4, nombre: 'Ana', apellido: 'Martinez', rut: '22.123.456-7', tipoSangre: 'B+' },
-    { id: 5, nombre: 'Pedro', apellido: 'Gonzalez', rut: '17.987.654-3', tipoSangre: 'O-' }
-  ];
+  pacientes: Paciente[] = [];
+  pacientesFiltrados: Paciente[] = [];
+  cargando: boolean = false;
+  error: string = '';
+  terminoBusqueda: string = '';
 
-  fichasFiltradas: FichaMedica[] = [];
-
-  constructor(private router: Router) {
-    addIcons({ arrowBack, search, eye });
+  constructor(
+    private pacientesService: PacientesService,
+    private router: Router
+  ) {
+    addIcons({ arrowBack });
   }
 
   ngOnInit() {
+    this.cargarPacientes();
   }
 
-  buscarPorNombre(event: any) {
-    const texto = event.target.value.toLowerCase().trim();
-    this.busquedaRealizada = true;
+  cargarPacientes() {
+    this.cargando = true;
+    this.error = '';
+    
+    this.pacientesService.getPacientes().subscribe({
+      next: (pacientes) => {
+        this.pacientes = pacientes;
+        this.pacientesFiltrados = pacientes;
+        this.cargando = false;
+      },
+      error: (error) => {
+        this.error = 'Error al cargar los pacientes';
+        this.cargando = false;
+      }
+    });
+  }
 
-    if (texto === '') {
-      this.fichasFiltradas = [];
-      this.busquedaRealizada = false;
-    } else {
-      this.fichasFiltradas = this.fichasEjemplo.filter(ficha => 
-        ficha.nombre.toLowerCase().includes(texto) || 
-        ficha.apellido.toLowerCase().includes(texto)
-      );
+  onBusquedaCambiada(termino: string) {
+    this.terminoBusqueda = termino;
+    
+    if (!termino) {
+      this.pacientesFiltrados = this.pacientes;
+      return;
     }
+
+    this.pacientesFiltrados = this.pacientes.filter(paciente => 
+      paciente.nombrePaciente.toLowerCase().includes(termino) ||
+      paciente.correo.toLowerCase().includes(termino) ||
+      paciente.telefono.includes(termino) ||
+      paciente.prevision.toLowerCase().includes(termino)
+    );
   }
 
-  buscarPorRut() {
-    this.busquedaRealizada = true;
-
-    if (this.rutBusqueda.trim() === '') {
-      this.fichasFiltradas = [];
-      this.busquedaRealizada = false;
-    } else {
-      this.fichasFiltradas = this.fichasEjemplo.filter(ficha => 
-        ficha.rut.includes(this.rutBusqueda)
-      );
-    }
+  onLimpiarBusqueda() {
+    this.terminoBusqueda = '';
+    this.pacientesFiltrados = this.pacientes;
   }
 
-  verFicha(fichaId: number) {
-    console.log('Ver ficha ID:', fichaId);
-    this.router.navigate(['/fichas/verFicha', fichaId]);
+  onRecargar() {
+    this.cargarPacientes();
   }
 
-  limpiarBusqueda() {
-    this.rutBusqueda = '';
-    this.fichasFiltradas = [];
-    this.busquedaRealizada = false;
+  onPacienteSeleccionado(paciente: Paciente) {
+    this.router.navigate(['/fichas/verFicha', paciente.idPaciente]);
   }
 
+  onAgregarPaciente() {
+    this.router.navigate(['/fichas/crearFichas']);
+  }
 }

@@ -1,0 +1,142 @@
+-- ============================================
+-- SCRIPT DE CREACIÓN BASE DE DATOS FICHAS MÉDICAS
+-- Motor: MySQL 8.x
+-- ============================================
+
+CREATE DATABASE IF NOT EXISTS MediTrack;
+USE MediTrack;
+
+-- ======================
+-- TABLAS BASE
+-- ======================
+
+CREATE TABLE Paciente (
+    idPaciente INT AUTO_INCREMENT PRIMARY KEY,
+    nombrePaciente VARCHAR(100) NOT NULL,
+    fechaNacimiento DATE NOT NULL,
+    correo VARCHAR(100) UNIQUE,
+    telefono VARCHAR(30),
+    direccion VARCHAR(150),
+    sexo ENUM('masculino', 'femenino', 'otro') NOT NULL,
+    nacionalidad VARCHAR(50),
+    ocupacion VARCHAR(100),
+    prevision VARCHAR(50),
+    tipoSangre VARCHAR(5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Habito (
+    idHabito INT AUTO_INCREMENT PRIMARY KEY,
+    habito VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE HabitoPaciente (
+    idHabito INT,
+    idPaciente INT,
+    observacion VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idHabito, idPaciente),
+    FOREIGN KEY (idHabito) REFERENCES Habito(idHabito),
+    FOREIGN KEY (idPaciente) REFERENCES Paciente(idPaciente) ON DELETE CASCADE
+);
+
+CREATE TABLE Alergia (
+    idAlergia INT AUTO_INCREMENT PRIMARY KEY,
+    alergia VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE AlergiaPaciente (
+    idPaciente INT,
+    idAlergia INT,
+    observacion VARCHAR(200),
+    fechaRegistro DATE NOT NULL DEFAULT (CURRENT_DATE),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idPaciente, idAlergia),
+    FOREIGN KEY (idPaciente) REFERENCES Paciente(idPaciente) ON DELETE CASCADE,
+    FOREIGN KEY (idAlergia) REFERENCES Alergia(idAlergia)
+);
+
+CREATE TABLE Vacuna (
+    idVacuna INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    observacion VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE PacienteVacuna (
+    idPaciente INT,
+    idVacuna INT,
+    fecha DATE NOT NULL DEFAULT (CURRENT_DATE),
+    dosis VARCHAR(50),
+    observacion VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idPaciente, idVacuna),
+    FOREIGN KEY (idPaciente) REFERENCES Paciente(idPaciente) ON DELETE CASCADE,
+    FOREIGN KEY (idVacuna) REFERENCES Vacuna(idVacuna)
+);
+
+CREATE TABLE Medicamento (
+    idMedicamento INT AUTO_INCREMENT PRIMARY KEY,
+    nombreMedicamento VARCHAR(100) NOT NULL,
+    empresa VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE MedicamentoCronicoPaciente (
+    idPaciente INT,
+    idMedicamento INT,
+    fechaInicio DATE DEFAULT (CURRENT_DATE),
+    fechaFin DATE,
+    cronico BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idPaciente, idMedicamento),
+    FOREIGN KEY (idPaciente) REFERENCES Paciente(idPaciente) ON DELETE CASCADE,
+    FOREIGN KEY (idMedicamento) REFERENCES Medicamento(idMedicamento)
+);
+
+CREATE TABLE TipoConsulta (
+    idTipoConsulta INT AUTO_INCREMENT PRIMARY KEY,
+    nombreTipoConsulta VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE ServicioSalud (
+    idServicioSalud INT AUTO_INCREMENT PRIMARY KEY,
+    nombreServicioSalud VARCHAR(100) NOT NULL,
+    direccion VARCHAR(150),
+    idTipoServicioSalud INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (idTipoServicioSalud) REFERENCES TipoConsulta(idTipoConsulta)
+);
+
+CREATE TABLE ProfesionalSalud (
+    idProfesionalSalud INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    especialidad VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Consulta (
+    idConsulta INT AUTO_INCREMENT PRIMARY KEY,
+    idPaciente INT NOT NULL,
+    idServicioSalud INT,
+    idProfesionalSalud INT,
+    idTipoConsulta INT,
+    fechaIngreso DATE DEFAULT (CURRENT_DATE),
+    fechaEgreso DATE,
+    condicionEgreso VARCHAR(100),
+    hora TIME DEFAULT (CURRENT_TIME),
+    motivo VARCHAR(200),
+    observacion VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (idPaciente) REFERENCES Paciente(idPaciente) ON DELETE CASCADE,
+    FOREIGN KEY (idServicioSalud) REFERENCES ServicioSalud(idServicioSalud),
+    FOREIGN KEY (idProfesionalSalud) REFERENCES ProfesionalSalud(idProfesionalSalud),
+    FOREIGN KEY (idTipoConsulta) REFERENCES TipoConsulta(idTipoConsulta)
+);
+
+-- ... el resto de tus tablas mantienen la misma estructura, solo agrega created_at

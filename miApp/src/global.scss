@@ -9,6 +9,7 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
+/* En global.css */
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -25,6 +26,7 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
+
 /**
  * Ionic Dark Mode
  * -----------------------------------------------------
@@ -34,4 +36,23 @@
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* @import '@ionic/angular/css/palettes/dark.system.css'; */
+
+
+/* Variables globales de colores lila profesional */
+:root {
+  --lila-primario: #7c3aed;
+  --lila-oscuro: #5b21b6;
+  --lila-claro: #8b5cf6;
+  --lila-suave: #f5f3ff;
+  --lila-borde: #ddd6fe;
+  --lila-gradient: linear-gradient(135deg, #7c3aed, #5b21b6);
+
+  --sangre-rojo: #e72b2b;
+  --sangre-rojo-oscuro: #8b1010;    
+}
+
+/* Para forzar modo claro durante desarrollo */
+body {
+  color-scheme: light;
+}

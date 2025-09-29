@@ -1,0 +1,26 @@
+.busqueda-container {
+  margin-bottom: 1.5rem;
+}
+
+.resultados-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+
+.cargando-container, .error-container {
+  text-align: center;
+  padding: 3rem 1rem;
+
+  ion-spinner {
+    margin-bottom: 1rem;
+    --color: var(--lila-primario);
+  }
+
+  p {
+    color: #1a1a1a;
+    font-weight: 500;
+  }
+}

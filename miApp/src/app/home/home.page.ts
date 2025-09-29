@@ -40,14 +40,6 @@ interface PaginaInfo {
 export class HomePage {
   paginas: PaginaInfo[] = [
     {
-      titulo: 'Pacientes',
-      descripcion: 'Enciclopedia de Pacientes',
-      detalles: 'Datos de pacientes almacenados.',
-      ruta: '/pacientes',
-      icono: 'paw-outline',
-      color: 'success'
-    },
-    {
       titulo: 'Fichas Médicas',
       descripcion: 'Enciclopedia de Fichas Médicas',
       detalles: 'Datos de fichas médicas almacenados.',

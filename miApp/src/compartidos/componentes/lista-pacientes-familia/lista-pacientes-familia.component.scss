@@ -1,0 +1,130 @@
+.header-familia {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+
+  h3 {
+    color: #1a1a1a;
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+}
+
+.lista-pacientes {
+  background: transparent;
+}
+
+.item-paciente {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 0.75rem;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.15);
+  }
+
+  ion-avatar {
+    width: 50px;
+    height: 50px;
+    margin: 1rem;
+    
+    img {
+      border: 2px solid var(--lila-borde);
+    }
+  }
+
+  .info-paciente {
+    margin: 1rem 0;
+
+    h2 {
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+    }
+
+    p {
+      margin: 0.25rem 0;
+      font-size: 0.85rem;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      ion-icon {
+        font-size: 0.9rem;
+        color: var(--lila-primario);
+      }
+    }
+
+    .contacto-info {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 0.5rem;
+    }
+  }
+
+  .badge-prevision {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  ion-button {
+    --padding-start: 0.5rem;
+    --padding-end: 0.5rem;
+    
+    ion-icon {
+      color: var(--lila-primario);
+    }
+  }
+}
+
+.estado-vacio {
+  text-align: center;
+  padding: 3rem 1rem;
+
+  .contenido-vacio {
+    padding: 2rem;
+
+    .icono-vacio {
+      font-size: 3rem;
+      color: var(--lila-claro);
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      color: #1a1a1a;
+      margin: 0 0 1rem 0;
+      font-weight: 600;
+    }
+
+    p {
+      color: #666;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .item-paciente {
+    .info-paciente {
+      h2 {
+        font-size: 0.95rem;
+      }
+      
+      p {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,65 @@
+<!-- Lista de pacientes -->
+<ion-list *ngIf="pacientes.length > 0" class="lista-pacientes">
+  
+  <!-- Header del grupo familiar -->
+  <div class="header-familia">
+    <h3>{{ titulo }}</h3>
+    <ion-button *ngIf="mostrarBotonAgregar" fill="clear" size="small" (click)="onAgregarPaciente()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      Agregar
+    </ion-button>
+  </div>
+
+  <ion-item 
+    *ngFor="let paciente of pacientes" 
+    (click)="seleccionarPaciente(paciente)"
+    class="item-paciente"
+    button
+    detail="true">
+    
+  <ion-avatar slot="start">
+    <img [src]="getAvatar(paciente)" alt="{{ paciente.nombrePaciente }}">
+  </ion-avatar>
+
+
+    <ion-label class="info-paciente">
+      <h2>{{ paciente.nombrePaciente }}</h2>
+      <p>
+        <ion-icon name="person" slot="start"></ion-icon>
+        {{ calcularEdad(paciente.fechaNacimiento) }} años
+      </p>
+      <p>
+        <ion-icon name="medical" slot="start"></ion-icon>
+        <ion-badge [color]="getPrevisionColor(paciente.prevision)" class="badge-prevision">
+          {{ paciente.prevision }}
+        </ion-badge>
+      </p>
+      <p class="contacto-info">
+        {{ paciente.correo }} • {{ paciente.telefono }}
+      </p>
+    </ion-label>
+
+    <ion-button 
+      slot="end" 
+      fill="clear"
+      (click)="seleccionarPaciente(paciente); $event.stopPropagation()">
+      <ion-icon name="arrow-forward" slot="icon-only"></ion-icon>
+    </ion-button>
+
+  </ion-item>
+</ion-list>
+
+<!-- Estado vacío -->
+<div *ngIf="pacientes.length === 0" class="estado-vacio">
+  <ion-card>
+    <ion-card-content class="contenido-vacio">
+      <ion-icon name="search" class="icono-vacio"></ion-icon>
+      <h3>No hay pacientes en tu grupo familiar</h3>
+      <p>Agrega miembros de tu familia para gestionar sus fichas médicas</p>
+      <ion-button *ngIf="mostrarBotonAgregar" color="tertiary" (click)="onAgregarPaciente()">
+        <ion-icon name="add" slot="start"></ion-icon>
+        Agregar Primer Paciente
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</div>

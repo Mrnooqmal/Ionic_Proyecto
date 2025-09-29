@@ -1,0 +1,10 @@
+#Crear servicios 
+ionic g service core/servicios/pacientes --skip-tests
+ionic g service core/servicios/consultas --skip-tests
+ionic g service core/servicios/examenes --skip-tests
+ionic g service core/servicios/diagnosticos --skip-tests
+
+ionic g service core/servicios/consultas --skip-tests
+ionic g service core/servicios/examenes --skip-tests
+ionic g service core/servicios/diagnosticos --skip-tests
+ionic g service core/servicios/habitos --skip-tests

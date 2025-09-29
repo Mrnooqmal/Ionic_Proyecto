@@ -1,59 +1,42 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonButton, IonButtons, IonIcon, IonItem, IonLabel, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonGrid, IonRow, IonCol, IonBadge } from '@ionic/angular/standalone';
+import { 
+  IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
+  IonButtons, IonIcon, IonCard, IonCardHeader, IonCardTitle, 
+  IonCardContent, IonGrid, IonRow, IonCol, IonBadge, IonSpinner, IonAvatar
+} from '@ionic/angular/standalone';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { arrowBack, person, medical, document, create, print, clipboard, analytics, construct, warning, cut, fitness, cafe } from 'ionicons/icons';
-
-interface FichaMedicaCompleta {
-  id: number;
-  nombre: string;
-  apellido: string;
-  rut: string;
-  tipoSangre: string;
-  edad: number;
-  examenes: string;
-  consultas: string;
-  diagnosticos: string;
-  procedimientos: string;
-  alergias: string;
-  operaciones: string;
-  medicamentos: string;
-  habitos: string;
-}
+import { 
+  arrowBack, person, medical, document, create, print, 
+  clipboard, analytics, construct, warning, cut, fitness, cafe 
+} from 'ionicons/icons';
+import { PacientesService, FichaMedicaCompleta, Paciente } from '../../../core/servicios/pacientes.service';
 
 @Component({
   selector: 'app-verFicha',
   templateUrl: './verFicha.page.html',
   styleUrls: ['./verFicha.page.scss'],
   standalone: true,
-  imports: [RouterModule, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButton, IonButtons, IonIcon, IonItem, IonLabel, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonGrid, IonRow, IonCol, IonBadge]
+  imports: [
+    RouterModule, IonContent, IonHeader, IonTitle, IonToolbar, 
+    CommonModule, FormsModule, IonButton, IonButtons, IonIcon, 
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, 
+    IonGrid, IonRow, IonCol, IonBadge, IonSpinner,IonAvatar
+  ]
 })
 export class VerFichaPage implements OnInit {
-  
+  paciente?: Paciente;
   fichaId: string = '';
-  
-  ficha: FichaMedicaCompleta = {
-    id: 1,
-    nombre: 'Miguel',
-    apellido: 'Torres',
-    rut: '21.437.567-3',
-    tipoSangre: 'AB-',
-    edad: 35,
-    examenes: 'Radiografia de torax\nExamen de sangre completo\nElectrocardiograma\nEcografia abdominal',
-    consultas: 'Consulta sobre problemas respiratorios\nSeguimiento de presion arterial\nControl de rutina anual',
-    diagnosticos: 'Hipertension arterial leve\nAsma bronquial controlada\nSobrepeso grado I',
-    procedimientos: 'Biopsia de piel\nEndoscopia digestiva alta\nColonoscopia preventiva',
-    alergias: 'Penicilina\nMariscos\nPolen de gramíneas',
-    operaciones: 'Apendicectomia (2018)\nExtraccion de muelas del juicio (2020)',
-    medicamentos: 'Enalapril 10mg - 1 vez al dia\nSalbutamol inhalador - segun necesidad\nOmeprazol 20mg - antes del desayuno',
-    habitos: 'Ex fumador (dejo hace 3 años)\nConsumo ocasional de alcohol\nEjercicio regular 3 veces por semana\nDieta balanceada'
-  };
+  ficha!: FichaMedicaCompleta;
+  cargando: boolean = true;
+  error: string = '';
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private pacientesService: PacientesService
   ) {
     addIcons({ 
       arrowBack, person, medical, document, create, print, 
@@ -62,13 +45,65 @@ export class VerFichaPage implements OnInit {
   }
 
   ngOnInit() {
-    this.fichaId = this.route.snapshot.paramMap.get('id') || '';
+    this.fichaId = this.route.snapshot.paramMap.get('id') || '1';
     console.log('Viendo ficha ID:', this.fichaId);
     this.cargarFicha();
   }
 
   cargarFicha() {
-    console.log('Cargando ficha medica para ID:', this.fichaId);
+    this.cargando = true;
+    this.error = '';
+    
+    this.pacientesService.getPacienteById(parseInt(this.fichaId)).subscribe({
+      next: (ficha: FichaMedicaCompleta) => {
+        this.ficha = ficha;
+        this.paciente = ficha.paciente;
+        this.cargando = false;
+        console.log('Ficha cargada:', ficha);
+      },
+      error: (error: any) => {
+        this.error = 'Error al cargar la ficha médica';
+        this.cargando = false;
+        console.error('Error:', error);
+      }
+    });
+  }
+
+  // Métodos auxiliares para formatear datos
+  getAlergiasTexto(): string {
+    if (!this.ficha?.alergias || this.ficha.alergias.length === 0) {
+      return 'No registra alergias';
+    }
+    return this.ficha.alergias.map((a: any) => 
+      `${a.alergia}${a.observacion ? ` (${a.observacion})` : ''}`
+    ).join('\n');
+  }
+
+  getHabitosTexto(): string {
+    if (!this.ficha?.habitos || this.ficha.habitos.length === 0) {
+      return 'No registra hábitos';
+    }
+    return this.ficha.habitos.map((h: any) => 
+      `${h.habito}${h.observacion ? `: ${h.observacion}` : ''}`
+    ).join('\n');
+  }
+
+  getMedicamentosTexto(): string {
+    if (!this.ficha?.medicamentos || this.ficha.medicamentos.length === 0) {
+      return 'No registra medicamentos';
+    }
+    return this.ficha.medicamentos.map((m: any) => 
+      m.nombreMedicamento
+    ).join('\n');
+  }
+
+  getConsultasTexto(): string {
+    if (!this.ficha?.consultas || this.ficha.consultas.length === 0) {
+      return 'No registra consultas';
+    }
+    return this.ficha.consultas.map((c: any) => 
+      `${c.motivo} - ${c.fechaIngreso}`
+    ).join('\n');
   }
 
   editarFicha() {
@@ -84,5 +119,11 @@ export class VerFichaPage implements OnInit {
   volverAtras() {
     this.router.navigate(['/fichas/buscarFichas']);
   }
+
+  getAvatar(paciente: any): string {
+    const defaultAvatar = 'https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg';
+    return paciente && paciente.fotoPerfil ? paciente.fotoPerfil : defaultAvatar;
+  }
+
 
 }

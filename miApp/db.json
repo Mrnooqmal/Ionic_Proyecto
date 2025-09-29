@@ -1,0 +1,19 @@
+{
+  "pacientes": [
+    {
+      "idPaciente": 1,
+      "nombrePaciente": "Miguel Torres",
+      "fechaNacimiento": "1989-05-15",
+      "correo": "miguel@email.com",
+      "telefono": "+56912345678",
+      "direccion": "Av. Principal 123",
+      "sexo": "masculino",
+      "nacionalidad": "Chilena",
+      "ocupacion": "Ingeniero",
+      "prevision": "FONASA",
+      "tipoSangre": "AB-"
+    }
+  ],
+  "consultas": [],
+  "examenes": []
+}

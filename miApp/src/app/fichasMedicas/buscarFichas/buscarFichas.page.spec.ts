@@ -1,73 +1,163 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BuscarFichasPage } from './buscarFichas.page';
 import { Router } from '@angular/router';
+import { PacientesService } from '../../../core/servicios/pacientes.service';
+import { of, throwError } from 'rxjs';
 
 describe('BuscarFichasPage', () => {
   let component: BuscarFichasPage;
   let fixture: ComponentFixture<BuscarFichasPage>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let pacientesServiceSpy: jasmine.SpyObj<PacientesService>;
+
+  const mockPacientes = [
+    {
+      idPaciente: 1,
+      nombrePaciente: 'Miguel Torres',
+      fechaNacimiento: '1989-05-15',
+      correo: 'miguel@email.com',
+      telefono: '+56912345678',
+      direccion: 'Av. Principal 123',
+      sexo: 'masculino',
+      nacionalidad: 'Chilena',
+      ocupacion: 'Ingeniero',
+      prevision: 'FONASA',
+      tipoSangre: 'AB-',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      idPaciente: 2,
+      nombrePaciente: 'Ana García',
+      fechaNacimiento: '1992-08-20',
+      correo: 'ana.garcia@email.com',
+      telefono: '+56987654321',
+      direccion: 'Calle Secundaria 456',
+      sexo: 'femenino',
+      nacionalidad: 'Chilena',
+      ocupacion: 'Doctora',
+      prevision: 'ISAPRE',
+      tipoSangre: 'O+',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('Router', ['navigate']);
+    const routerSpyObj = jasmine.createSpyObj('Router', ['navigate']);
+    const pacientesServiceSpyObj = jasmine.createSpyObj('PacientesService', ['getPacientes']);
 
     await TestBed.configureTestingModule({
       imports: [BuscarFichasPage],
       providers: [
-        { provide: Router, useValue: spy }
+        { provide: Router, useValue: routerSpyObj },
+        { provide: PacientesService, useValue: pacientesServiceSpyObj }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(BuscarFichasPage);
     component = fixture.componentInstance;
     routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    fixture.detectChanges();
+    pacientesServiceSpy = TestBed.inject(PacientesService) as jasmine.SpyObj<PacientesService>;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('deberia filtrar fichas por nombre', () => {
-    const evento = { target: { value: 'Miguel' } };
-    component.buscarPorNombre(evento);
-    
-    expect(component.fichasFiltradas.length).toBe(1);
-    expect(component.fichasFiltradas[0].nombre).toBe('Miguel');
-    expect(component.busquedaRealizada).toBe(true);
+  it('should initialize with empty values', () => {
+    expect(component.pacientes).toEqual([]);
+    expect(component.pacientesFiltrados).toEqual([]);
+    expect(component.cargando).toBeFalse();
+    expect(component.error).toBe('');
+    expect(component.terminoBusqueda).toBe('');
   });
 
-  it('deberia filtrar fichas por RUT', () => {
-    component.rutBusqueda = '21.437.567-3';
-    component.buscarPorRut();
+  it('should load pacientes on init', () => {
+    pacientesServiceSpy.getPacientes.and.returnValue(of(mockPacientes));
     
-    expect(component.fichasFiltradas.length).toBe(1);
-    expect(component.fichasFiltradas[0].rut).toBe('21.437.567-3');
+    component.ngOnInit();
+    
+    expect(pacientesServiceSpy.getPacientes).toHaveBeenCalled();
+    expect(component.pacientes).toEqual(mockPacientes);
+    expect(component.pacientesFiltrados).toEqual(mockPacientes);
+    expect(component.cargando).toBeFalse();
   });
 
-  it('deberia limpiar busqueda correctamente', () => {
-    component.rutBusqueda = 'test';
-    component.fichasFiltradas = [component.fichasEjemplo[0]];
-    component.busquedaRealizada = true;
+  it('should handle error when loading pacientes', () => {
+    const errorMessage = 'Error de conexión';
+    pacientesServiceSpy.getPacientes.and.returnValue(throwError(() => new Error(errorMessage)));
     
-    component.limpiarBusqueda();
+    component.ngOnInit();
     
-    expect(component.rutBusqueda).toBe('');
-    expect(component.fichasFiltradas.length).toBe(0);
-    expect(component.busquedaRealizada).toBe(false);
+    expect(component.error).toBe('Error al cargar los pacientes');
+    expect(component.cargando).toBeFalse();
   });
 
-  it('deberia navegar a ver ficha', () => {
-    const fichaId = 1;
-    component.verFicha(fichaId);
+  it('should filter pacientes by search term', () => {
+    component.pacientes = mockPacientes;
+    component.pacientesFiltrados = mockPacientes;
     
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/fichas/ver', fichaId]);
+    component.onBusquedaCambiada('miguel');
+    
+    expect(component.pacientesFiltrados.length).toBe(1);
+    expect(component.pacientesFiltrados[0].nombrePaciente).toBe('Miguel Torres');
   });
 
-  it('deberia mostrar mensaje cuando no hay resultados', () => {
-    component.rutBusqueda = 'noexiste';
-    component.buscarPorRut();
+  it('should clear search and show all pacientes', () => {
+    component.pacientes = mockPacientes;
+    component.pacientesFiltrados = [mockPacientes[0]];
+    component.terminoBusqueda = 'miguel';
     
-    expect(component.fichasFiltradas.length).toBe(0);
-    expect(component.busquedaRealizada).toBe(true);
+    component.onLimpiarBusqueda();
+    
+    expect(component.terminoBusqueda).toBe('');
+    expect(component.pacientesFiltrados).toEqual(mockPacientes);
+  });
+
+  it('should reload pacientes', () => {
+    spyOn(component, 'cargarPacientes');
+    
+    component.onRecargar();
+    
+    expect(component.cargarPacientes).toHaveBeenCalled();
+  });
+
+  it('should navigate to patient ficha when selected', () => {
+    const paciente = mockPacientes[0];
+    
+    component.onPacienteSeleccionado(paciente);
+    
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/fichas/verFicha', paciente.idPaciente]);
+  });
+
+  it('should navigate to create ficha when adding patient', () => {
+    component.onAgregarPaciente();
+    
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/fichas/crearFichas']);
+  });
+
+  it('should filter by multiple criteria', () => {
+    component.pacientes = mockPacientes;
+    
+    // Test nombre
+    component.onBusquedaCambiada('ana');
+    expect(component.pacientesFiltrados.length).toBe(1);
+    expect(component.pacientesFiltrados[0].nombrePaciente).toBe('Ana García');
+    
+    // Test email
+    component.onBusquedaCambiada('miguel@email.com');
+    expect(component.pacientesFiltrados.length).toBe(1);
+    expect(component.pacientesFiltrados[0].nombrePaciente).toBe('Miguel Torres');
+    
+    // Test teléfono
+    component.onBusquedaCambiada('87654321');
+    expect(component.pacientesFiltrados.length).toBe(1);
+    expect(component.pacientesFiltrados[0].nombrePaciente).toBe('Ana García');
+    
+    // Test previsión
+    component.onBusquedaCambiada('isapre');
+    expect(component.pacientesFiltrados.length).toBe(1);
+    expect(component.pacientesFiltrados[0].nombrePaciente).toBe('Ana García');
   });
 });

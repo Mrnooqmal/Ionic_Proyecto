@@ -1,0 +1,7 @@
+# Desde tu computadora local (NO desde la EC2)
+
+
+mysql -h [IP-PÚBLICA-EC2] -u meditrack_user -p MediTrack
+
+# Ejemplo:
+mysql -h 54.210.123.456 -u meditrack_user -p MediTrack
