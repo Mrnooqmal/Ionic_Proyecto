@@ -29,6 +29,13 @@ export const routes: Routes = [
   {
     path: 'fichas/editarFicha/:id',
     loadComponent: () => import('./fichasMedicas/editarFicha/editarFicha.page').then(m => m.EditarFichaPage)
+  },
+  {
+    path: 'fichas/crear-paciente',
+    loadComponent: () => import('./fichasMedicas/crear-paciente/crear-paciente.page').then(m => m.CrearPaciente)
+  },
+  {
+    path: 'fichas/editar-paciente/:id',
+    loadComponent: () => import('./fichasMedicas/editar-paciente/editar-paciente.page').then(m => m.EditarPaciente)
   }
-
 ];

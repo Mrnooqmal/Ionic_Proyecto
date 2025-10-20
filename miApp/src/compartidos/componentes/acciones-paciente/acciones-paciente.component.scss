@@ -1,0 +1,9 @@
+ion-buttons {
+    display: flex;
+    gap: 0.25rem;
+  }
+  
+  ion-button {
+    --padding-start: 0.5rem;
+    --padding-end: 0.5rem;
+  }

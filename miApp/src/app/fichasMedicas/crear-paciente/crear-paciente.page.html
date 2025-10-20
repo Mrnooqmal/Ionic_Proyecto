@@ -1,0 +1,16 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="tertiary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/fichas/buscarFichas"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Agregar Nuevo Paciente</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <app-formulario-paciente
+    modo="crear"
+    (guardado)="onPacienteGuardado($event)"
+    (cancelado)="onFormularioCancelado()">
+  </app-formulario-paciente>
+</ion-content>

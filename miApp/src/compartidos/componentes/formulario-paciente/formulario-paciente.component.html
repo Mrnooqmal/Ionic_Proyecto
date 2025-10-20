@@ -1,0 +1,180 @@
+<ion-card>
+  <ion-card-content>
+    <form (ngSubmit)="guardar()" #form="ngForm">
+      
+      <!-- Estado de carga -->
+      @if (cargando) {
+        <div class="cargando-container">
+          <ion-spinner></ion-spinner>
+          <p>Cargando datos del paciente...</p>
+        </div>
+      }
+
+      @if (!cargando) {
+        <ion-grid>
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item>
+                <ion-label position="stacked">Nombre Completo *</ion-label>
+                <ion-input 
+                  [(ngModel)]="paciente.nombrePaciente" 
+                  name="nombrePaciente"
+                  placeholder="Ej: Juan Pérez García"
+                  required>
+                </ion-input>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-item>
+                <ion-label position="stacked">Correo Electrónico *</ion-label>
+                <ion-input 
+                  [(ngModel)]="paciente.correo" 
+                  name="correo"
+                  type="email"
+                  placeholder="ejemplo@email.com"
+                  required>
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item>
+                <ion-label position="stacked">Fecha de Nacimiento *</ion-label>
+                <ion-input 
+                  [(ngModel)]="paciente.fechaNacimiento" 
+                  name="fechaNacimiento"
+                  type="date"
+                  required>
+                </ion-input>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-item>
+                <ion-label position="stacked">Teléfono</ion-label>
+                <ion-input 
+                  [(ngModel)]="paciente.telefono" 
+                  name="telefono"
+                  placeholder="+569 1234 5678">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="4">
+              <ion-item>
+                <ion-label position="stacked">Sexo</ion-label>
+                <ion-select [(ngModel)]="paciente.sexo" name="sexo">
+                  <ion-select-option value="masculino">Masculino</ion-select-option>
+                  <ion-select-option value="femenino">Femenino</ion-select-option>
+                  <ion-select-option value="otro">Otro</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="4">
+              <ion-item>
+                <ion-label position="stacked">Previsión</ion-label>
+                <ion-select [(ngModel)]="paciente.prevision" name="prevision">
+                  <ion-select-option value="FONASA">FONASA</ion-select-option>
+                  <ion-select-option value="ISAPRE">ISAPRE</ion-select-option>
+                  <ion-select-option value="Particular">Particular</ion-select-option>
+                  <ion-select-option value="Otro">Otro</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="4">
+              <ion-item>
+                <ion-label position="stacked">Tipo de Sangre</ion-label>
+                <ion-input 
+                  [(ngModel)]="paciente.tipoSangre" 
+                  name="tipoSangre"
+                  placeholder="Ej: O+">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12">
+              <ion-item>
+                <ion-label position="stacked">Dirección</ion-label>
+                <ion-textarea 
+                  [(ngModel)]="paciente.direccion" 
+                  name="direccion"
+                  placeholder="Dirección completa"
+                  rows="2">
+                </ion-textarea>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item>
+                <ion-label position="stacked">Ocupación</ion-label>
+                <ion-input 
+                  [(ngModel)]="paciente.ocupacion" 
+                  name="ocupacion"
+                  placeholder="Ej: Ingeniero, Doctor, etc.">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="12" size-md="6">
+              <ion-item>
+                <ion-label position="stacked">Nacionalidad</ion-label>
+                <ion-input 
+                  [(ngModel)]="paciente.nacionalidad" 
+                  name="nacionalidad"
+                  placeholder="Ej: Chilena">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <!-- Botones de acción -->
+          <ion-row>
+            <ion-col size="12" class="botones-accion">
+              <ion-button 
+                type="submit" 
+                color="tertiary"
+                expand="block"
+                [disabled]="guardando">
+                <ion-icon name="save" slot="start"></ion-icon>
+                @if (guardando) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                }
+                {{ modo === 'crear' ? 'Crear Paciente' : 'Actualizar Paciente' }}
+              </ion-button>
+
+              <ion-button 
+                color="medium" 
+                expand="block" 
+                fill="outline"
+                (click)="cancelar()"
+                [disabled]="guardando">
+                <ion-icon name="close" slot="start"></ion-icon>
+                Cancelar
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      }
+    </form>
+  </ion-card-content>
+</ion-card>
+
+<!-- Toast para mensajes -->
+<ion-toast
+  [isOpen]="mostrarToast"
+  [message]="mensajeToast"
+  [duration]="3000"
+  [color]="tipoToast"
+  (didDismiss)="mostrarToast = false">
+</ion-toast>

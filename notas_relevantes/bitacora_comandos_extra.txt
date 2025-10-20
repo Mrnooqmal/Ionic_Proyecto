@@ -9,7 +9,15 @@ ionic g service core/servicios/examenes --skip-tests
 ionic g service core/servicios/diagnosticos --skip-tests
 ionic g service core/servicios/habitos --skip-tests
 
+<<<<<<< HEAD
 
 #componente buscar pacientes
 ionic g component compartidos/componentes/busqueda-pacientes --standalone
 ionic g component compartidos/componentes/lista-pacientes-familia --standalone
+=======
+ionic g component compartidos/componentes/formulario-paciente --standalone
+ionic g component compartidos/componentes/acciones-paciente --standalone 
+
+ionic generate page fichasMedicas/editar-paciente
+ionic generate page fichasMedicas/crear-paciente
+>>>>>>> ad57d801b7ec1ed83aaea885ab196875e20e1d6c

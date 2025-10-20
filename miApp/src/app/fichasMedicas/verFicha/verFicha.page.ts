@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
   IonButtons, IonIcon, IonCard, IonCardHeader, IonCardTitle, 
@@ -10,7 +9,8 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, person, medical, document, create, print, 
-  clipboard, analytics, construct, warning, cut, fitness, cafe 
+  clipboard, analytics, construct, warning, fitness, cafe,
+  location, call, calendar, school, globe
 } from 'ionicons/icons';
 import { PacientesService, FichaMedicaCompleta, Paciente } from '../../../core/servicios/pacientes.service';
 
@@ -21,13 +21,12 @@ import { PacientesService, FichaMedicaCompleta, Paciente } from '../../../core/s
   standalone: true,
   imports: [
     RouterModule, IonContent, IonHeader, IonTitle, IonToolbar, 
-    CommonModule, FormsModule, IonButton, IonButtons, IonIcon, 
+    CommonModule, IonButton, IonButtons, IonIcon, 
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, 
-    IonGrid, IonRow, IonCol, IonBadge, IonSpinner,IonAvatar
+    IonGrid, IonRow, IonCol, IonBadge, IonSpinner, IonAvatar
   ]
 })
 export class VerFichaPage implements OnInit {
-  paciente?: Paciente;
   fichaId: string = '';
   ficha!: FichaMedicaCompleta;
   cargando: boolean = true;
@@ -40,7 +39,8 @@ export class VerFichaPage implements OnInit {
   ) {
     addIcons({ 
       arrowBack, person, medical, document, create, print, 
-      clipboard, analytics, construct, warning, cut, fitness, cafe 
+      clipboard, analytics, construct, warning, fitness, cafe,
+      location, call, calendar, school, globe
     });
   }
 
@@ -54,10 +54,9 @@ export class VerFichaPage implements OnInit {
     this.cargando = true;
     this.error = '';
     
-    this.pacientesService.getPacienteById(parseInt(this.fichaId)).subscribe({
+    this.pacientesService.getFichaMedicaCompleta(parseInt(this.fichaId)).subscribe({
       next: (ficha: FichaMedicaCompleta) => {
         this.ficha = ficha;
-        this.paciente = ficha.paciente;
         this.cargando = false;
         console.log('Ficha cargada:', ficha);
       },
@@ -69,13 +68,12 @@ export class VerFichaPage implements OnInit {
     });
   }
 
-  // Métodos auxiliares para formatear datos
   getAlergiasTexto(): string {
     if (!this.ficha?.alergias || this.ficha.alergias.length === 0) {
       return 'No registra alergias';
     }
-    return this.ficha.alergias.map((a: any) => 
-      `${a.alergia}${a.observacion ? ` (${a.observacion})` : ''}`
+    return this.ficha.alergias.map(alergia => 
+      `• ${alergia.alergia}${alergia.observacion ? ` - ${alergia.observacion}` : ''}`
     ).join('\n');
   }
 
@@ -83,8 +81,8 @@ export class VerFichaPage implements OnInit {
     if (!this.ficha?.habitos || this.ficha.habitos.length === 0) {
       return 'No registra hábitos';
     }
-    return this.ficha.habitos.map((h: any) => 
-      `${h.habito}${h.observacion ? `: ${h.observacion}` : ''}`
+    return this.ficha.habitos.map(habito => 
+      `• ${habito.habito}${habito.observacion ? `: ${habito.observacion}` : ''}`
     ).join('\n');
   }
 
@@ -92,8 +90,8 @@ export class VerFichaPage implements OnInit {
     if (!this.ficha?.medicamentos || this.ficha.medicamentos.length === 0) {
       return 'No registra medicamentos';
     }
-    return this.ficha.medicamentos.map((m: any) => 
-      m.nombreMedicamento
+    return this.ficha.medicamentos.map(med => 
+      `• ${med.nombreMedicamento}${med.frecuencia ? ` (${med.frecuencia})` : ''}`
     ).join('\n');
   }
 
@@ -101,29 +99,75 @@ export class VerFichaPage implements OnInit {
     if (!this.ficha?.consultas || this.ficha.consultas.length === 0) {
       return 'No registra consultas';
     }
-    return this.ficha.consultas.map((c: any) => 
-      `${c.motivo} - ${c.fechaIngreso}`
-    ).join('\n');
+    return this.ficha.consultas.map(consulta => 
+      `• ${consulta.motivo}\n  Fecha: ${consulta.fechaIngreso}\n  Profesional: ${consulta.profesional}`
+    ).join('\n\n');
+  }
+
+  getExamenesTexto(): string {
+    if (!this.ficha?.examenes || this.ficha.examenes.length === 0) {
+      return 'No registra exámenes';
+    }
+    return this.ficha.examenes.map(examen => 
+      `• ${examen.nombreExamen}\n  Fecha: ${examen.fecha}\n  Resultado: ${examen.resultado}`
+    ).join('\n\n');
+  }
+
+  getDiagnosticosTexto(): string {
+    if (!this.ficha?.diagnosticos || this.ficha.diagnosticos.length === 0) {
+      return 'No registra diagnósticos';
+    }
+    return this.ficha.diagnosticos.map(diagnostico => 
+      `• ${diagnostico.diagnostico}\n  Fecha: ${diagnostico.fecha}${diagnostico.estado ? `\n  Estado: ${diagnostico.estado}` : ''}`
+    ).join('\n\n');
+  }
+
+  getProcedimientosTexto(): string {
+    if (!this.ficha?.procedimientos || this.ficha.procedimientos.length === 0) {
+      return 'No registra procedimientos';
+    }
+    return this.ficha.procedimientos.map(proc => 
+      `• ${proc.nombreProcedimiento}\n  Fecha: ${proc.fecha}${proc.resultado ? `\n  Resultado: ${proc.resultado}` : ''}`
+    ).join('\n\n');
+  }
+
+  calcularEdad(fechaNacimiento: string): number {
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+    
+    return edad;
   }
 
   editarFicha() {
-    console.log('Editando ficha ID:', this.fichaId);
-    this.router.navigate(['/fichas/editarFicha', this.fichaId]);
+    this.router.navigate(['/fichas/editar-paciente', this.fichaId]);
   }
 
   imprimirFicha() {
-    console.log('Imprimiendo ficha ID:', this.fichaId);
     window.print();
   }
 
+  getAvatar(): string {
+    return this.ficha?.paciente?.fotoPerfil || 'https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg';
+  }
+
   volverAtras() {
-    this.router.navigate(['/fichas/buscarFichas']);
+    this.router.navigate(['/fichas']);
   }
 
-  getAvatar(paciente: any): string {
-    const defaultAvatar = 'https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg';
-    return paciente && paciente.fotoPerfil ? paciente.fotoPerfil : defaultAvatar;
+  getPrevisionColor(prevision: string): string {
+    switch (prevision.toLowerCase()) {
+      case 'fonasa':
+        return 'primary';
+      case 'isapre':
+        return 'secondary';
+      default:
+        return 'medium';
+    }
   }
-
-
 }
