@@ -8,3 +8,8 @@ ionic g service core/servicios/consultas --skip-tests
 ionic g service core/servicios/examenes --skip-tests
 ionic g service core/servicios/diagnosticos --skip-tests
 ionic g service core/servicios/habitos --skip-tests
+
+
+#componente buscar pacientes
+ionic g component compartidos/componentes/busqueda-pacientes --standalone
+ionic g component compartidos/componentes/lista-pacientes-familia --standalone

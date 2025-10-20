@@ -139,4 +139,190 @@ CREATE TABLE Consulta (
     FOREIGN KEY (idTipoConsulta) REFERENCES TipoConsulta(idTipoConsulta)
 );
 
--- ... el resto de tus tablas mantienen la misma estructura, solo agrega created_at
+
+CREATE TABLE Receta (
+    idConsulta INT,
+    idMedicamento INT,
+    frecuencia VARCHAR(100),
+    dosis VARCHAR(100),
+    fecha DATE DEFAULT (CURRENT_DATE),
+    duracion VARCHAR(50),
+    cronico BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idConsulta, idMedicamento),
+    FOREIGN KEY (idConsulta) REFERENCES Consulta(idConsulta) ON DELETE CASCADE,
+    FOREIGN KEY (idMedicamento) REFERENCES Medicamento(idMedicamento)
+);
+
+CREATE TABLE Examen (
+    idExamen INT AUTO_INCREMENT PRIMARY KEY,
+    nombreExamen VARCHAR(100) NOT NULL,
+    tipoExamen VARCHAR(50),
+    unidadMedida VARCHAR(30),
+    valorReferencia VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE ConsultaExamen (
+    idExamen INT,
+    idConsulta INT,
+    fecha DATE DEFAULT (CURRENT_DATE),
+    observacion VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idExamen, idConsulta),
+    FOREIGN KEY (idExamen) REFERENCES Examen(idExamen),
+    FOREIGN KEY (idConsulta) REFERENCES Consulta(idConsulta) ON DELETE CASCADE
+);
+
+CREATE TABLE Evolucion (
+    idEvolucion INT AUTO_INCREMENT PRIMARY KEY,
+    idConsulta INT,
+    fecha DATE NOT NULL DEFAULT (CURRENT_DATE),
+    descripcion TEXT,
+    proximaCita DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (idConsulta) REFERENCES Consulta(idConsulta) ON DELETE CASCADE
+);
+
+CREATE TABLE TipoProcedimiento (
+    idTipoProcedimiento INT AUTO_INCREMENT PRIMARY KEY,
+    tipoProcedimiento VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Procedimiento (
+    idProcedimiento INT AUTO_INCREMENT PRIMARY KEY,
+    nombreProcedimiento VARCHAR(100) NOT NULL,
+    fecha DATE DEFAULT (CURRENT_DATE),
+    idTipoProcedimiento INT,
+    indicaciones VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (idTipoProcedimiento) REFERENCES TipoProcedimiento(idTipoProcedimiento)
+);
+
+CREATE TABLE ConsultaProcedimiento (
+    idConsulta INT,
+    idProcedimiento INT,
+    fecha DATE DEFAULT (CURRENT_DATE),
+    observacion VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idConsulta, idProcedimiento),
+    FOREIGN KEY (idConsulta) REFERENCES Consulta(idConsulta) ON DELETE CASCADE,
+    FOREIGN KEY (idProcedimiento) REFERENCES Procedimiento(idProcedimiento)
+);
+
+CREATE TABLE DatoClinico (
+    idDatoClinico INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    unidadMedida VARCHAR(30),
+    descripcion VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE DetalleConsulta (
+    idConsulta INT,
+    idDatoClinico INT,
+    valor VARCHAR(100),
+    fechaRegistro DATE DEFAULT (CURRENT_DATE),
+    observacion VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idConsulta, idDatoClinico),
+    FOREIGN KEY (idConsulta) REFERENCES Consulta(idConsulta) ON DELETE CASCADE,
+    FOREIGN KEY (idDatoClinico) REFERENCES DatoClinico(idDatoClinico)
+);
+
+CREATE TABLE Diagnostico (
+    idDiagnostico INT AUTO_INCREMENT PRIMARY KEY,
+    urgencia BOOLEAN DEFAULT false,
+    cie10 VARCHAR(10),
+    comentarios VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE ConsultaDiagnostico (
+    idConsulta INT,
+    idDiagnostico INT,
+    observacion VARCHAR(200),
+    urgencia BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (idConsulta, idDiagnostico),
+    FOREIGN KEY (idConsulta) REFERENCES Consulta(idConsulta) ON DELETE CASCADE,
+    FOREIGN KEY (idDiagnostico) REFERENCES Diagnostico(idDiagnostico)
+);
+
+-- ======================
+-- ÍNDICES ADICIONALES
+-- ======================
+CREATE INDEX idx_paciente_correo ON Paciente(correo);
+CREATE INDEX idx_paciente_nombre ON Paciente(nombrePaciente);
+CREATE INDEX idx_consulta_fecha ON Consulta(fechaIngreso);
+CREATE INDEX idx_consulta_paciente ON Consulta(idPaciente);
+CREATE INDEX idx_receta_fecha ON Receta(fecha);
+CREATE INDEX idx_examen_nombre ON Examen(nombreExamen);
+CREATE INDEX idx_medicamento_nombre ON Medicamento(nombreMedicamento);
+CREATE INDEX idx_evolucion_fecha ON Evolucion(fecha);
+CREATE INDEX idx_alergia_paciente ON AlergiaPaciente(idPaciente);
+CREATE INDEX idx_vacuna_paciente ON PacienteVacuna(idPaciente);
+
+
+
+
+-- ======================
+-- DATOS INICIALES DE PRUEBA
+-- ======================
+
+-- Insertar hábitos comunes
+INSERT INTO Habito (habito) VALUES 
+('Tabaco'), ('Alcohol'), ('Ejercicio regular'), ('Dieta balanceada'), 
+('Cafeína'), ('Drogas recreativas'), ('Meditación'), ('Sueno regular');
+
+-- Insertar alergias comunes
+INSERT INTO Alergia (alergia) VALUES 
+('Penicilina'), ('Aspirina'), ('Mariscos'), ('Maní'), ('Látex'), 
+('Polvo'), ('Polen'), ('Acaros'), ('Huevos'), ('Lactosa');
+
+-- Insertar vacunas comunes
+INSERT INTO Vacuna (nombre, observacion) VALUES 
+('Influenza', 'Vacuna anual contra la influenza'),
+('COVID-19', 'Vacuna contra COVID-19'),
+('Hepatitis B', 'Vacuna contra hepatitis B'),
+('Tétanos', 'Refuerzo cada 10 años'),
+('MMR', 'Sarampión, paperas, rubéola');
+
+-- Insertar tipos de consulta
+INSERT INTO TipoConsulta (nombreTipoConsulta) VALUES 
+('Consulta general'), ('Control rutinario'), ('Urgencia'), 
+('Especialidad'), ('Exámenes'), ('Procedimiento');
+
+-- Insertar medicamentos comunes
+INSERT INTO Medicamento (nombreMedicamento, empresa) VALUES 
+('Paracetamol', 'Genérico'), ('Ibuprofeno', 'Genérico'),
+('Amoxicilina', 'Pfizer'), ('Loratadina', 'Bayer'),
+('Omeprazol', 'AstraZeneca'), ('Metformina', 'Merck');
+
+-- Insertar tipos de procedimiento
+INSERT INTO TipoProcedimiento (tipoProcedimiento) VALUES 
+('Cirugía'), ('Biopsia'), ('Endoscopía'), 
+('Radiografía'), ('Ecografía'), ('Tomografía');
+
+-- Insertar datos clínicos comunes
+INSERT INTO DatoClinico (nombre, unidadMedida, descripcion) VALUES 
+('Presión arterial', 'mmHg', 'Presión arterial sistólica/diastólica'),
+('Temperatura', '°C', 'Temperatura corporal'),
+('Peso', 'kg', 'Peso corporal'),
+('Estatura', 'cm', 'Estatura'),
+('Glucosa', 'mg/dL', 'Nivel de glucosa en sangre'),
+('Colesterol total', 'mg/dL', 'Colesterol total');
+
+-- ======================
+-- VERIFICACIÓN
+-- ======================
+
+SELECT 'Base de datos MediTrack creada exitosamente!' as Status;
+
+-- Mostrar todas las tablas creadas
+SHOW TABLES;
+
+-- Contar tablas creadas
+SELECT COUNT(*) as Total_Tablas FROM information_schema.tables 
+WHERE table_schema = 'MediTrack';
