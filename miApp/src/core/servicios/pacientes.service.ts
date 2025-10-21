@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs'; 
+import { Observable, BehaviorSubject } from 'rxjs'; 
 import { BaseMysqlService } from './base_mysql.service';
 
 export interface Paciente {
@@ -35,13 +35,23 @@ export interface FichaMedicaCompleta {
   providedIn: 'root'
 })
 export class PacientesService extends BaseMysqlService {
+  private pacientesSubject = new BehaviorSubject<Paciente[]>([]);
+  pacientes$ = this.pacientesSubject.asObservable();
 
   constructor(http: HttpClient) {
     super(http);
+    this.cargarPacientesIniciales();
+  }
+
+  private cargarPacientesIniciales() {
+    this.get<Paciente[]>('pacientes').subscribe({
+      next: (pacientes) => this.pacientesSubject.next(pacientes),
+      error: (error) => console.error('Error al cargar pacientes iniciales:', error)
+    });
   }
 
   getPacientes(): Observable<Paciente[]> {
-    return this.get<Paciente[]>('pacientes');
+    return this.pacientes$;
   }
 
   getPacienteById(id: number): Observable<Paciente> {
@@ -50,8 +60,17 @@ export class PacientesService extends BaseMysqlService {
   }
 
   crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
-    console.log('Enviando paciente a MySQL API:', paciente);
-    return this.post<Paciente>('pacientes', paciente);
+    return new Observable((observer) => {
+      this.post<Paciente>('pacientes', paciente).subscribe({
+        next: (nuevoPaciente) => {
+          const pacientesActuales = this.pacientesSubject.getValue();
+          this.pacientesSubject.next([...pacientesActuales, nuevoPaciente]);
+          observer.next(nuevoPaciente);
+          observer.complete();
+        },
+        error: (error) => observer.error(error)
+      });
+    });
   }
 
   actualizarPaciente(id: number, cambios: Partial<Paciente>): Observable<Paciente> {

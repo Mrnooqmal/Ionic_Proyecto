@@ -9,6 +9,7 @@ import { addIcons } from 'ionicons';
 import { arrowBack } from 'ionicons/icons';
 import { FormularioPacienteComponent } from '../../../compartidos/componentes/formulario-paciente/formulario-paciente.component';
 import { Paciente } from  '../../../core/servicios/pacientes.service';
+import { PacientesService } from '../../../core/servicios/pacientes.service';
 
 @Component({
   selector: 'app-crear-paciente',
@@ -21,15 +22,22 @@ import { Paciente } from  '../../../core/servicios/pacientes.service';
   ]
 })
 export class CrearPaciente {
-  constructor(private router: Router) {
+  constructor(private router: Router, private pacientesService: PacientesService) {
     addIcons({ arrowBack });
   }
 
   onPacienteGuardado(paciente: Paciente) {
-    // Redirigir a la lista después de 1.5 segundos para mostrar el mensaje
-    setTimeout(() => {
-      this.router.navigate(['/fichas/buscarFichas']);
-    }, 1500);
+    this.pacientesService.crearPaciente(paciente).subscribe({
+      next: () => {
+        // Redirigir a la lista después de 1.5 segundos para mostrar el mensaje
+        setTimeout(() => {
+          this.router.navigate(['/fichas/buscarFichas']);
+        }, 1500);
+      },
+      error: (error) => {
+        console.error('Error al guardar el paciente:', error);
+      }
+    });
   }
 
   onFormularioCancelado() {
