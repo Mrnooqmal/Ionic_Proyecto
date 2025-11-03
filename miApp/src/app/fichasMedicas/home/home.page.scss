@@ -1,0 +1,21 @@
+.fichas-content {
+  --padding-bottom: 80px;
+}
+
+// Los estilos principales están en global.scss
+// Este archivo puede contener estilos específicos adicionales de la página
+
+.hero-section {
+  .hero-icon {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}

@@ -1,155 +1,223 @@
-/* gestion-pacientes.page.scss */
-.gestion-pacientes-content {
-  --background: #f8fafc;
+.gestion-content {
+  --background: var(--ion-color-light);
 }
 
-/* Header manteniendo colores originales pero mejorados */
-ion-toolbar[color="primary"] {
-  --background: var(--lila-primario);
-  --color: white;
-  
-  ion-back-button {
-    --color: white;
-  }
-  
-  ion-button {
-    --color: white;
-  }
+.content-container {
+  max-width: 100%;
+  margin: 0 auto;
 }
 
-/* Dashboard Hero mejorado */
-.dashboard-hero {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  margin: 16px;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.1);
-  border: 1px solid var(--lila-borde);
-}
+.hero-section {
+  text-align: center;
+  padding: 20px 16px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  color: white;
+  border-radius: 0 0 20px 20px;
+  margin-bottom: 16px;
 
-.user-welcome {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  .hero-icon {
+    margin-bottom: 12px;
 
-  .user-avatar {
-    width: 60px;
-    height: 60px;
-    background: var(--lila-suave);
-    border: 2px solid var(--lila-borde);
-    
-    .avatar-icon {
-      font-size: 1.8rem;
-      color: var(--lila-primario);
+    .user-avatar {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+
+      .avatar-icon {
+        font-size: 40px;
+        color: white;
+      }
     }
   }
 
-  .welcome-text {
-    flex: 1;
-    
-    h2 {
+  .loading-state {
+    ion-skeleton-text {
+      --background-rgb: 255, 255, 255;
+      --border-radius: 4px;
+    }
+  }
+
+  .patient-info {
+    h1 {
       margin: 0 0 8px 0;
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       font-weight: 600;
-      color: var(--texto-oscuro);
     }
-    
+
     p {
       margin: 0;
-      color: var(--texto-medio);
+      opacity: 0.9;
       font-size: 0.9rem;
-      line-height: 1.4;
     }
   }
 }
 
-/* NUEVO GRID DE MÉTRICAS */
-.metrics-grid {
+.stats-quick-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  padding: 0 16px 20px 16px;
 
-  .metric-card {
-    background: var(--lila-suave);
-    border-radius: 12px;
-    padding: 16px;
+  .stat-quick-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    border: 1px solid var(--lila-borde);
-    transition: all 0.3s ease;
+    padding: 16px;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:active {
       transform: scale(0.98);
-      background: var(--lila-borde);
     }
 
-    .metric-icon-container {
-      width: 40px;
-      height: 40px;
-      background: white;
-      border-radius: 10px;
+    ion-icon {
+      font-size: 24px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .stat-content {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      
-      ion-icon {
-        font-size: 1.4rem;
+      flex-direction: column;
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--ion-color-dark);
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--ion-color-medium);
+        margin-top: 2px;
       }
     }
 
-    .metric-info {
-      .metric-value {
-        display: block;
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: var(--texto-oscuro);
-        line-height: 1;
+    &.primary {
+      ion-icon {
+        color: var(--ion-color-primary);
       }
+    }
 
-      .metric-label {
-        font-size: 0.75rem;
-        color: var(--texto-medio);
-        margin-top: 4px;
+    &.danger {
+      ion-icon {
+        color: var(--ion-color-danger);
+      }
+    }
+
+    &.warning {
+      ion-icon {
+        color: var(--ion-color-warning);
+      }
+    }
+
+    &.success {
+      ion-icon {
+        color: var(--ion-color-success);
       }
     }
   }
 }
 
-/* Estados de carga y error manteniendo diseño original pero mejorado */
-.cargando {
+.error-card {
+  margin: 0 16px 16px 16px;
+  border-radius: 12px;
+
+  ion-card-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    ion-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.add-patient-btn {
+  margin: 20px 16px;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
+}
+
+.empty-state {
   text-align: center;
   padding: 40px 20px;
-  
-  ion-spinner {
-    margin-bottom: 12px;
-    --color: var(--lila-primario);
+
+  ion-icon {
+    font-size: 64px;
+    color: var(--ion-color-medium);
+    margin-bottom: 16px;
   }
-  
-  ion-text {
-    color: var(--texto-medio);
+
+  h3 {
+    margin: 0 0 8px 0;
+    color: var(--ion-color-dark);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0 0 20px 0;
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
   }
 }
 
-/* FAB personalizado */
-ion-fab-button[color="primary"] {
-  --background: var(--lila-primario);
-  --background-activated: var(--lila-oscuro);
-  --background-hover: var(--lila-claro);
+// Bottom Navigation
+.bottom-nav {
+  --background: white;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+
+  .nav-buttons {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 0;
+
+    .nav-button {
+      --color: var(--ion-color-medium);
+      --color-activated: var(--ion-color-primary);
+      --color-focused: var(--ion-color-primary);
+      margin: 0;
+      height: 48px;
+      width: 48px;
+
+      &.active {
+        --color: var(--ion-color-primary);
+      }
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
 }
 
-ion-fab-button[color="secondary"] {
-  --background: var(--azul-primario);
-  --background-activated: var(--azul-oscuro);
-  --background-hover: var(--azul-claro);
-}
+// Responsive
+@media (min-width: 768px) {
+  .content-container {
+    max-width: 600px;
+  }
 
-/* Asegurar que los textos usen la fuente del sistema */
-ion-content {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
+  .hero-section {
+    margin: 16px 16px 24px 16px;
+    border-radius: 20px;
+  }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  .stats-quick-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 0 16px 24px 16px;
+  }
 }

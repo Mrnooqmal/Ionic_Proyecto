@@ -24,6 +24,7 @@ import { PacientesService, Paciente } from '../../../core/servicios/pacientes.se
 export class FormularioPacienteComponent implements OnInit {
   @Input() modo: 'crear' | 'editar' = 'crear';
   @Input() pacienteId?: number;
+  @Input() cargando: boolean = false; // 
   @Output() guardado = new EventEmitter<Paciente>();
   @Output() cancelado = new EventEmitter<void>();
 
@@ -43,7 +44,6 @@ export class FormularioPacienteComponent implements OnInit {
     { value: 'padre', label: 'Padre/Madre' }
   ];
   
-  cargando = false;
   guardando = false;
   mostrarToast = false;
   mensajeToast = '';

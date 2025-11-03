@@ -28,3 +28,10 @@
   ion-card {
     margin: 0;
   }
+
+  .form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }

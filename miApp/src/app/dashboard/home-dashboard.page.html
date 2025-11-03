@@ -11,7 +11,7 @@
         <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face" alt="Doctor" />
       </ion-avatar>
       <div class="user-details">
-        <h2>Hola, {{usuario.nombre}} 👋</h2>
+        <h2>Hola, {{usuario.nombre}}</h2>
         <p>{{usuario.especialidad}}</p>
       </div>
     </div>
@@ -21,9 +21,9 @@
     </div>
   </div>
 
-  <!-- Métricas Rápidas -->
+  <!-- Métricas Rápidas - CORREGIDAS LAS RUTAS -->
   <div class="metrics-grid">
-    <div class="metric-card" (click)="navegar('/pacientes')">
+    <div class="metric-card" (click)="navegar('/fichas/gestion-pacientes')">
       <ion-icon name="people" color="primary" class="metric-icon"></ion-icon>
       <div class="metric-info">
         <span class="metric-value">{{metricas.totalPacientes}}</span>
@@ -31,7 +31,7 @@
       </div>
     </div>
     
-    <div class="metric-card" (click)="navegar('/consultas')">
+    <div class="metric-card" (click)="navegar('/home')">
       <ion-icon name="calendar" color="success" class="metric-icon"></ion-icon>
       <div class="metric-info">
         <span class="metric-value">{{metricas.consultasHoy}}</span>
@@ -39,7 +39,7 @@
       </div>
     </div>
     
-    <div class="metric-card" (click)="navegar('/examenes')">
+    <div class="metric-card" (click)="navegar('/home')">
       <ion-icon name="flask" color="tertiary" class="metric-icon"></ion-icon>
       <div class="metric-info">
         <span class="metric-value">{{metricas.examenesPendientes}}</span>
@@ -47,7 +47,7 @@
       </div>
     </div>
     
-    <div class="metric-card" (click)="navegar('/alertas')">
+    <div class="metric-card" (click)="navegar('/home')">
       <ion-icon name="alert-circle" color="danger" class="metric-icon"></ion-icon>
       <div class="metric-info">
         <span class="metric-value">{{metricas.alertas}}</span>

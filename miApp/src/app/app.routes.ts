@@ -2,28 +2,29 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: 'home',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
-  },
-  {
     path: '',
-    redirectTo: 'fichas',
+    redirectTo: 'home',
     pathMatch: 'full',
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./dashboard/home-dashboard.page').then((m) => m.HomeDashboardPage),
+    path: 'home',
+    loadComponent: () => import('./fichasMedicas/home/home.page').then(m => m.HomePage)
   },
   {
     path: 'fichas',
-    loadComponent: () => import('./fichasMedicas/fichas/fichas.page').then(m => m.FichasPage)
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./dashboard/home-dashboard.page').then(m => m.HomeDashboardPage),
   },
   {
     path: 'fichas/crearFichas',
     loadComponent: () => import('./fichasMedicas/crearFicha/crearFicha.page').then(m => m.CrearFichaPage)
   },
   {
-    path: 'fichas/gestion-pacientes',
+    path: 'gestion-pacientes',
     loadComponent: () => import('./fichasMedicas/gestion-pacientes/gestion-pacientes.page').then(m => m.GestionPacientesPage)
   },
   {

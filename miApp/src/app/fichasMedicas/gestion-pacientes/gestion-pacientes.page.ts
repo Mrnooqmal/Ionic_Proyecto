@@ -4,8 +4,7 @@ import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton,    
   IonRefresher, IonRefresherContent, 
   IonButtons, IonBackButton, IonSpinner, IonText, IonCard, IonCardContent,
-  IonIcon, IonFab, IonFabButton, IonFabList, IonAvatar
-} from '@ionic/angular/standalone';
+  IonIcon, IonFab, IonFabButton, IonFabList, IonAvatar, IonSkeletonText, IonChip } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { arrowBack, refresh, person, add, personAdd, people, medical } from 'ionicons/icons';
@@ -20,13 +19,12 @@ import { FamiliaService, Familia } from '../../../core/servicios/familias.servic
   templateUrl: './gestion-pacientes.page.html',
   styleUrls: ['./gestion-pacientes.page.scss'],
   standalone: true,
-  imports: [
+  imports: [ IonSkeletonText, 
     CommonModule, 
     IonContent, IonHeader, IonTitle, IonToolbar, IonButton,
-    IonButtons, IonBackButton,
-    IonSpinner, IonText, IonCard, IonCardContent,
+    IonButtons, IonCard, IonCardContent,
     IonRefresher, IonRefresherContent, 
-    IonIcon, IonFab, IonFabButton, IonFabList,IonAvatar,
+    IonIcon,IonAvatar,
     BusquedaPacientesComponent,
     ListaPacientesFamiliaComponent
   ]

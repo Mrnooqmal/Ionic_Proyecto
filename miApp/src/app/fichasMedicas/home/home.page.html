@@ -1,0 +1,144 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Mi MediTrack</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/dashboard" fill="clear">
+        <ion-icon name="home" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="fichas-content">
+  <div class="content-container">
+    <!-- Hero Section con info del paciente -->
+    <div class="hero-section">
+      <div class="hero-icon">
+        <ion-icon name="document" class="main-icon"></ion-icon>
+      </div>
+      
+      <div *ngIf="cargando" class="loading-state">
+        <ion-skeleton-text animated style="width: 60%; height: 28px; margin: 0 auto 8px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 40%; height: 16px; margin: 0 auto;"></ion-skeleton-text>
+      </div>
+
+      <div *ngIf="!cargando && pacienteActual" class="patient-info">
+        <h1>{{ saludo }}, {{ pacienteActual.nombrePaciente.split(' ')[0] }}</h1>
+        <div class="patient-meta">
+          <ion-chip class="info-chip">
+            <ion-icon name="person-circle"></ion-icon>
+            <ion-label>{{ edad }} años</ion-label>
+          </ion-chip>
+          <ion-chip class="info-chip">
+            <ion-icon name="heart-outline"></ion-icon>
+            <ion-label>{{ pacienteActual.tipoSangre }}</ion-label>
+          </ion-chip>
+          <ion-chip class="info-chip">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <ion-label>{{ pacienteActual.prevision }}</ion-label>
+          </ion-chip>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions Grid -->
+    <div class="actions-grid">
+      <!-- Tarjeta grande: Mis Estadísticas -->
+      <ion-card class="action-card large-card" button="true" routerLink="/dashboard">
+        <div class="card-icon stats">
+          <ion-icon name="stats-chart"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Mis Estadísticas</ion-card-title>
+          <ion-card-subtitle>Panel de control y métricas de salud</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+
+      <!-- Crear Ficha -->
+      <ion-card class="action-card" button="true" routerLink="/fichas/crearFichas">
+        <div class="card-icon primary">
+          <ion-icon name="add-circle"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Crear Ficha</ion-card-title>
+          <ion-card-subtitle>Nueva ficha médica</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+
+      <!-- Grupo Familiar -->
+      <ion-card class="action-card" button="true" routerLink="/gestion-pacientes">
+        <div class="card-icon secondary">
+          <ion-icon name="people"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Grupo Familiar</ion-card-title>
+          <ion-card-subtitle>Administrar familia</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+
+      <!-- Buscar Fichas -->
+      <ion-card class="action-card" button="true" routerLink="/fichas/buscarFichas">
+        <div class="card-icon tertiary">
+          <ion-icon name="search"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Buscar Fichas</ion-card-title>
+          <ion-card-subtitle>Encontrar pacientes</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+
+      <!-- Consultas -->
+      <ion-card class="action-card" button="true" routerLink="/consultas">
+        <div class="card-icon success">
+          <ion-icon name="medical"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Consultas</ion-card-title>
+          <ion-card-subtitle>Historial médico</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+
+      <!-- Recetas Médicas -->
+      <ion-card class="action-card" button="true" routerLink="/recetas">
+        <div class="card-icon warning">
+          <ion-icon name="receipt"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Recetas</ion-card-title>
+          <ion-card-subtitle>Medicamentos activos</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+
+      <!-- Exámenes -->
+      <ion-card class="action-card" button="true" routerLink="/examenes">
+        <div class="card-icon info">
+          <ion-icon name="flask"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Exámenes</ion-card-title>
+          <ion-card-subtitle>Resultados de laboratorio</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>
+
+<ion-toolbar class="bottom-nav">
+  <div class="nav-buttons">
+    <ion-button class="nav-button" routerLink="/dashboard" routerDirection="root">
+      <ion-icon name="home" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button active" routerLink="/fichas" routerDirection="root">
+      <ion-icon name="document" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/fichas/crear-paciente" routerDirection="root">
+      <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/examenes" routerDirection="root">
+      <ion-icon name="flask" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/configuracion" routerDirection="root">
+      <ion-icon name="settings" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</ion-toolbar>

@@ -2,8 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
-  IonButtons, IonIcon, IonBackButton, IonToast
-} from '@ionic/angular/standalone';
+  IonButtons, IonIcon, IonBackButton, IonToast, IonSpinner } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { arrowBack } from 'ionicons/icons';
