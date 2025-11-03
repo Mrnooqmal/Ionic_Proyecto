@@ -11,6 +11,10 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'dashboard',
+    loadComponent: () => import('./dashboard/home-dashboard.page').then((m) => m.HomeDashboardPage),
+  },
+  {
     path: 'fichas',
     loadComponent: () => import('./fichasMedicas/fichas/fichas.page').then(m => m.FichasPage)
   },
@@ -19,8 +23,8 @@ export const routes: Routes = [
     loadComponent: () => import('./fichasMedicas/crearFicha/crearFicha.page').then(m => m.CrearFichaPage)
   },
   {
-    path: 'fichas/buscarFichas',
-    loadComponent: () => import('./fichasMedicas/buscarFichas/buscarFichas.page').then(m => m.BuscarFichasPage)
+    path: 'fichas/gestion-pacientes',
+    loadComponent: () => import('./fichasMedicas/gestion-pacientes/gestion-pacientes.page').then(m => m.GestionPacientesPage)
   },
   {
     path: 'fichas/verFicha/:id',

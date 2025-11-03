@@ -8,46 +8,50 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class BaseMysqlService {
-  protected apiUrl = environment.apiUrls.pacientes
-  
+  protected baseUrl = environment.apiUrls.base;
+
   constructor(protected http: HttpClient) { }
 
   protected getHeaders(): HttpHeaders {
     return new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      // 'Accept': 'application/json' //descomentar si el backend lo requiere
     });
   }
-
   protected handleError(error: HttpErrorResponse) {
-    let errorMessage = 'Error desconocido';
+    console.log('🔍 ERROR COMPLETO:', error);
+    console.log('🔍 ERROR BODY:', error.error);
+    console.log('🔍 ERROR ERRORS:', error.error?.errors);
     
+    let errorMessage = 'Error desconocido';
     if (error.error instanceof ErrorEvent) {
       errorMessage = `Error: ${error.error.message}`;
     } else {
-      errorMessage = `Código: ${error.status}\nMensaje: ${error.message}`;
+      const serverMsg = error.error?.message || error.message;
+      errorMessage = `Código: ${error.status}\nMensaje: ${serverMsg}`;
     }
     
-    console.error('Error en servicio MySQL:', errorMessage);
+    console.error('API error:', errorMessage);
     return throwError(() => new Error(errorMessage));
   }
 
   protected get<T>(endpoint: string): Observable<T> {
-    return this.http.get<T>(`${this.apiUrl}/${endpoint}`, { headers: this.getHeaders() })
-      .pipe(catchError(this.handleError));
+    const url = `${this.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+    return this.http.get<T>(url, { headers: this.getHeaders() }).pipe(catchError(this.handleError));
   }
 
   protected post<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.post<T>(`${this.apiUrl}/${endpoint}`, data, { headers: this.getHeaders() })
-      .pipe(catchError(this.handleError));
+    const url = `${this.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+    return this.http.post<T>(url, data, { headers: this.getHeaders() }).pipe(catchError(this.handleError));
   }
 
   protected put<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.put<T>(`${this.apiUrl}/${endpoint}`, data, { headers: this.getHeaders() })
-      .pipe(catchError(this.handleError));
+    const url = `${this.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+    return this.http.put<T>(url, data, { headers: this.getHeaders() }).pipe(catchError(this.handleError));
   }
 
   protected delete<T>(endpoint: string): Observable<T> {
-    return this.http.delete<T>(`${this.apiUrl}/${endpoint}`, { headers: this.getHeaders() })
-      .pipe(catchError(this.handleError));
+    const url = `${this.baseUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+    return this.http.delete<T>(url, { headers: this.getHeaders() }).pipe(catchError(this.handleError));
   }
 }

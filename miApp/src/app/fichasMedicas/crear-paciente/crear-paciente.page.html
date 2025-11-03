@@ -13,4 +13,14 @@
     (guardado)="onPacienteGuardado($event)"
     (cancelado)="onFormularioCancelado()">
   </app-formulario-paciente>
+
+  
+  <ion-toast
+    [isOpen]="mostrarToast"
+    [message]="mensajeToast"
+    [duration]="3000"
+    [color]="tipoToast"
+    (didDismiss)="mostrarToast = false">
+  </ion-toast>
+  
 </ion-content>

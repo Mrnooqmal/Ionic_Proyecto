@@ -1,0 +1,118 @@
+<ion-content [fullscreen]="true" class="dashboard-content">
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Header Personalizado -->
+  <div class="dashboard-header">
+    <div class="user-info">
+      <ion-avatar class="user-avatar">
+        <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face" alt="Doctor" />
+      </ion-avatar>
+      <div class="user-details">
+        <h2>Hola, {{usuario.nombre}} 👋</h2>
+        <p>{{usuario.especialidad}}</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <ion-icon name="notifications" class="notification-icon"></ion-icon>
+      <ion-badge color="danger" class="notification-badge">2</ion-badge>
+    </div>
+  </div>
+
+  <!-- Métricas Rápidas -->
+  <div class="metrics-grid">
+    <div class="metric-card" (click)="navegar('/pacientes')">
+      <ion-icon name="people" color="primary" class="metric-icon"></ion-icon>
+      <div class="metric-info">
+        <span class="metric-value">{{metricas.totalPacientes}}</span>
+        <span class="metric-label">Pacientes</span>
+      </div>
+    </div>
+    
+    <div class="metric-card" (click)="navegar('/consultas')">
+      <ion-icon name="calendar" color="success" class="metric-icon"></ion-icon>
+      <div class="metric-info">
+        <span class="metric-value">{{metricas.consultasHoy}}</span>
+        <span class="metric-label">Hoy</span>
+      </div>
+    </div>
+    
+    <div class="metric-card" (click)="navegar('/examenes')">
+      <ion-icon name="flask" color="tertiary" class="metric-icon"></ion-icon>
+      <div class="metric-info">
+        <span class="metric-value">{{metricas.examenesPendientes}}</span>
+        <span class="metric-label">Exámenes</span>
+      </div>
+    </div>
+    
+    <div class="metric-card" (click)="navegar('/alertas')">
+      <ion-icon name="alert-circle" color="danger" class="metric-icon"></ion-icon>
+      <div class="metric-info">
+        <span class="metric-value">{{metricas.alertas}}</span>
+        <span class="metric-label">Alertas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones Rápidas -->
+  <div class="section-header">
+    <h3>Acciones Rápidas</h3>
+    <ion-text color="medium">Accede rápidamente</ion-text>
+  </div>
+
+  <ion-grid class="quick-actions-grid">
+    <ion-row>
+      <ion-col size="6" *ngFor="let accion of accionesRapidas">
+        <div class="quick-action-card" (click)="navegar(accion.ruta)" [class]="accion.color">
+          <div class="action-icon-container">
+            <ion-icon [name]="accion.icono" class="action-icon"></ion-icon>
+            <ion-badge *ngIf="accion.badge" color="danger" class="action-badge">
+              {{accion.badge}}
+            </ion-badge>
+          </div>
+          <div class="action-info">
+            <h4>{{accion.titulo}}</h4>
+            <p>{{accion.descripcion}}</p>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Recordatorios del Día -->
+  <div class="section-header">
+    <h3>Recordatorios de Hoy</h3>
+    <ion-text color="medium">No te pierdas nada</ion-text>
+  </div>
+
+  <div class="reminders-list">
+    <div *ngFor="let recordatorio of recordatorios" 
+         class="reminder-item"
+         [class.urgente]="recordatorio.urgente">
+      <div class="reminder-icon" [class]="getColorTipo(recordatorio.tipo)">
+        <ion-icon [name]="getIconoTipo(recordatorio.tipo)"></ion-icon>
+      </div>
+      
+      <div class="reminder-content">
+        <div class="reminder-header">
+          <h4>{{recordatorio.titulo}}</h4>
+          <ion-chip *ngIf="recordatorio.urgente" color="danger" size="small">
+            <ion-label>Urgente</ion-label>
+          </ion-chip>
+        </div>
+        <p>{{recordatorio.descripcion}}</p>
+        <div class="reminder-meta">
+          <ion-icon name="time"></ion-icon>
+          <span>{{recordatorio.hora}} • {{recordatorio.fecha}}</span>
+        </div>
+      </div>
+      
+      <ion-icon name="chevron-forward" class="reminder-arrow"></ion-icon>
+    </div>
+  </div>
+
+  <!-- Espacio final para scroll -->
+  <div class="spacer"></div>
+</ion-content>

@@ -1,0 +1,131 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/fichas" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Gestión de Pacientes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onRecargar()" [disabled]="cargando">
+        <ion-icon name="refresh" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding gestion-pacientes-content">
+
+  <!-- Header informativo mejorado -->
+  <div class="dashboard-hero">
+    <div class="user-welcome">
+      <ion-avatar class="user-avatar">
+        <ion-icon name="person" class="avatar-icon"></ion-icon>
+      </ion-avatar>
+      <div class="welcome-text">
+        <h2>Grupo familiar de {{ pacienteActualNombre }}</h2>
+        <p>Gestiona las fichas médicas de tus familiares o personas a cargo.</p>
+      </div>
+    </div>
+    
+    <!-- NUEVAS ESTADÍSTICAS EN GRID -->
+    <div class="metrics-grid">
+      <div class="metric-card" (click)="onVerTodasFamilias()">
+        <div class="metric-icon-container">
+          <ion-icon name="people" color="primary"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{estadisticas.totalPacientes}}</span>
+          <span class="metric-label">Pacientes</span>
+        </div>
+      </div>
+      
+      <div class="metric-card" (click)="onVerEstadisticas()">
+        <div class="metric-icon-container">
+          <ion-icon name="alert-circle" color="danger"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{estadisticas.conAlertas}}</span>
+          <span class="metric-label">Alertas</span>
+        </div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-icon-container">
+          <ion-icon name="document" color="warning"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{estadisticas.sinFichaCompleta}}</span>
+          <span class="metric-label">Por completar</span>
+        </div>
+      </div>
+      
+      <div class="metric-card" (click)="onVerTodasFamilias()">
+        <div class="metric-icon-container">
+          <ion-icon name="business" color="success"></ion-icon>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{estadisticas.totalFamilias}}</span>
+          <span class="metric-label">Familias</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loader -->
+  <div *ngIf="cargando" class="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <ion-text>Cargando grupo familiar...</ion-text>
+  </div>
+
+  <!-- Mensaje de error -->
+  <ion-card *ngIf="error" color="danger">
+    <ion-card-content>
+      <ion-text color="light">{{ error }}</ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Componente de búsqueda -->
+  <app-busqueda-pacientes
+    [cargando]="cargando"
+    [error]="error"
+    [totalPacientes]="pacientesFamilia.length"
+    [pacientesFiltrados]="pacientesFiltrados.length"
+    [terminoBusqueda]="terminoBusqueda"
+    (busquedaCambiada)="onBusquedaCambiada($event)"
+    (limpiarBusqueda)="onLimpiarBusqueda()"
+    (recargar)="onRecargar()">
+  </app-busqueda-pacientes>
+
+  <!-- Lista de pacientes familiares MEJORADA -->
+  <app-lista-pacientes-familia
+    [pacientes]="pacientesFiltrados"
+    [mostrarBotonAgregar]="true"
+    [titulo]="'Mi Grupo Familiar'"
+    [mostrarEstadisticas]="true"
+    [estadisticas]="estadisticas"
+    (pacienteSeleccionado)="onPacienteSeleccionado($event)"
+    (agregarPaciente)="onAgregarPaciente()"
+    (agregarFamilia)="onAgregarFamilia()"
+    (verFamilias)="onVerTodasFamilias()">
+  </app-lista-pacientes-familia>
+
+  <!-- NUEVO FAB PARA ACCIONES RÁPIDAS -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button color="primary">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button color="primary" (click)="onAgregarPaciente()">
+        <ion-icon name="person-add"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button color="secondary" (click)="onAgregarFamilia()">
+        <ion-icon name="people"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+
+</ion-content>

@@ -1,13 +1,15 @@
-import { Injectable } from '@angular/core';
+// src/app/core/servicios/pacientes.service.ts
+import { Injectable, Optional, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs'; 
+import { Observable, BehaviorSubject, of, forkJoin, throwError } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
 import { BaseMysqlService } from './base_mysql.service';
 
 export interface Paciente {
   idPaciente: number;
   nombrePaciente: string;
   fechaNacimiento: string;
-  correo: string;
+  correo?: string | null;
   telefono: string;
   direccion: string;
   sexo: string;
@@ -16,19 +18,25 @@ export interface Paciente {
   prevision: string;
   fotoPerfil?: string;
   tipoSangre: string;
-  created_at: string;
-  updated_at: string;
+  rolFamiliar?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface FichaMedicaCompleta {
   paciente: Paciente;
   alergias: any[];
   habitos: any[];
-  medicamentos: any[];
+  vacunas: any[];
   consultas: any[];
+  medicamentos: any[];
   examenes: any[];
   diagnosticos: any[];
   procedimientos: any[];
+}
+
+export interface WsServiceLike {
+  on(eventName: string): Observable<any>;
 }
 
 @Injectable({
@@ -38,147 +46,184 @@ export class PacientesService extends BaseMysqlService {
   private pacientesSubject = new BehaviorSubject<Paciente[]>([]);
   pacientes$ = this.pacientesSubject.asObservable();
 
-  constructor(http: HttpClient) {
+  constructor(
+    protected override http: HttpClient,
+    @Optional() @Inject('WsServiceLike') private wsService?: WsServiceLike 
+  ) {
     super(http);
     this.cargarPacientesIniciales();
+    this.initRealtimeIfAvailable();
   }
 
+
   private cargarPacientesIniciales() {
-    this.get<Paciente[]>('pacientes').subscribe({
-      next: (pacientes) => this.pacientesSubject.next(pacientes),
-      error: (error) => console.error('Error al cargar pacientes iniciales:', error)
-    });
+    this.get<any>('patients')
+      .pipe(
+        map(resp => resp?.data ?? resp ?? []),
+        catchError(err => {
+          console.error('Error cargarPacientesIniciales:', err);
+          return of([]);
+        })
+      )
+      .subscribe((pacientes: Paciente[]) => this.pacientesSubject.next(pacientes));
   }
+
+  private initRealtimeIfAvailable() {
+    if (!this.wsService) return;
+
+    this.wsService.on('patient.updated').pipe(
+      catchError(err => {
+        console.warn('WsService error:', err);
+        return of(null);
+      })
+    ).subscribe((payload: any) => {
+      if (!payload) return;
+      const paciente: Paciente = payload.data ?? payload;
+      if (paciente?.idPaciente) {
+        this._upsertInList(paciente);
+      }
+    });
+
+  }
+
+  //helper privado para actualizar la lista local 
+  private _upsertInList(paciente: Paciente) {
+    const actuales = this.pacientesSubject.getValue();
+    const idx = actuales.findIndex(p => p.idPaciente === paciente.idPaciente);
+    if (idx === -1) {
+      this.pacientesSubject.next([...actuales, paciente]);
+    } else {
+      const copia = [...actuales];
+      copia[idx] = { ...copia[idx], ...paciente };
+      this.pacientesSubject.next(copia);
+    }
+  }
+
+  private _removeFromList(id: number) {
+    const actuales = this.pacientesSubject.getValue();
+    this.pacientesSubject.next(actuales.filter(p => p.idPaciente !== id));
+  }
+
+  //API públicas
 
   getPacientes(): Observable<Paciente[]> {
     return this.pacientes$;
   }
 
+  /**
+   * getPacienteById: devuelve un Observable<Paciente>.
+   * Si el backend envuelve en { success, data } lo mapeamos automáticamente.
+   */
   getPacienteById(id: number): Observable<Paciente> {
-    console.log(`Obteniendo paciente ID: ${id}`);
-    return this.get<Paciente>(`pacientes/${id}`);
+    return this.get<any>(`patients/${id}`).pipe(
+      map(resp => resp?.data ?? resp),
+      catchError(err => {
+        console.error('Error getPacienteById:', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * getMedicamentosReales: llama al endpoint /patients/{id}/medicines
+   * y devuelve un array (response.data || response || []).
+   */
+  getMedicamentosReales(id: number): Observable<any[]> {
+    return this.get<any>(`patients/${id}/medicines`).pipe(
+      map(resp => resp?.data ?? resp ?? []),
+      catchError(err => {
+        console.warn(`No se pudieron obtener medicamentos para paciente ${id}`, err);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * safeGetArray: intenta GET a un endpoint que debería devolver array;
+   * si falla devuelve [] en lugar de propagar error (útil para construir ficha completa).
+   */
+  private safeGetArray(endpoint: string) {
+    return this.get<any>(endpoint).pipe(
+      map(resp => resp?.data ?? resp ?? []),
+      catchError(err => {
+        // Log opcional y retorno vacío
+        console.debug(`safeGetArray: endpoint ${endpoint} falló, devolviendo []`, err?.status);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * getFichaMedicaCompleta: combate llamadas en paralelo y arma la ficha.
+   * Llama: paciente, medicamentos reales, y otros endpoints si existen.
+   */
+  getFichaMedicaCompleta(id: number): Observable<FichaMedicaCompleta> {
+    return forkJoin({
+      paciente: this.getPacienteById(id),
+      medicamentos: this.getMedicamentosReales(id),
+      alergias: this.safeGetArray(`patients/${id}/allergies`),     
+      habitos: this.safeGetArray(`patients/${id}/habits`),
+      vacunas: this.safeGetArray(`patients/${id}/vaccines`),
+      consultas: this.safeGetArray(`patients/${id}/consultations`),
+      examenes: this.safeGetArray(`patients/${id}/exams`),
+      diagnosticos: this.safeGetArray(`patients/${id}/diagnostics`),
+      procedimientos: this.safeGetArray(`patients/${id}/procedures`)
+    }).pipe(
+      map(result => {
+        const ficha: FichaMedicaCompleta = {
+          paciente: result.paciente,
+          medicamentos: result.medicamentos ?? [],
+          alergias: result.alergias ?? [],
+          habitos: result.habitos ?? [],
+          vacunas: result.vacunas ?? [],
+          consultas: result.consultas ?? [],
+          examenes: result.examenes ?? [],
+          diagnosticos: result.diagnosticos ?? [],
+          procedimientos: result.procedimientos ?? []
+        };
+        return ficha;
+      })
+    );
   }
 
   crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
-    return new Observable((observer) => {
-      this.post<Paciente>('pacientes', paciente).subscribe({
-        next: (nuevoPaciente) => {
-          const pacientesActuales = this.pacientesSubject.getValue();
-          this.pacientesSubject.next([...pacientesActuales, nuevoPaciente]);
-          observer.next(nuevoPaciente);
-          observer.complete();
-        },
-        error: (error) => observer.error(error)
-      });
-    });
+    return this.post<any>('patients', paciente).pipe(
+      map(resp => resp?.data ?? resp),
+      tap((nuevo: Paciente) => {
+        // insertamos en la lista local
+        const actuales = this.pacientesSubject.getValue();
+        this.pacientesSubject.next([...actuales, nuevo]);
+      }),
+      catchError(err => {
+        console.error('Error crearPaciente:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   actualizarPaciente(id: number, cambios: Partial<Paciente>): Observable<Paciente> {
-    console.log(`Actualizando paciente ID ${id} en MySQL:`, cambios);
-    return this.put<Paciente>(`pacientes/${id}`, cambios);
+    return this.put<any>(`patients/${id}`, cambios).pipe(
+      map(resp => resp?.data ?? resp),
+      tap((pacienteActualizado: Paciente) => {
+        this._upsertInList(pacienteActualizado);
+      }),
+      catchError(err => {
+        console.error('Error actualizarPaciente:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   eliminarPaciente(id: number): Observable<void> {
-    console.log(`Eliminando paciente ID ${id} de MySQL`);
-    return this.delete<void>(`pacientes/${id}`);
-  }
-
-  getFichaMedicaCompleta(id: number): Observable<FichaMedicaCompleta> {
-    console.log(`Obteniendo ficha completa para paciente ID: ${id}`);
-    
-    return new Observable(observer => {
-      this.getPacienteById(id).subscribe({
-        next: (pacienteReal) => {
-          const fichaCompleta: FichaMedicaCompleta = {
-            paciente: pacienteReal,
-            alergias: this.getAlergiasSimuladas(id),
-            habitos: this.getHabitosSimulados(id),
-            medicamentos: this.getMedicamentosSimulados(id),
-            consultas: this.getConsultasSimuladas(id),
-            examenes: this.getExamenesSimulados(id),
-            diagnosticos: this.getDiagnosticosSimulados(id),
-            procedimientos: this.getProcedimientosSimulados(id)
-          };
-          observer.next(fichaCompleta);
-          observer.complete();
-        },
-        error: (error) => observer.error(error)
-      });
-    });
-  }
-
-  private getAlergiasSimuladas(pacienteId: number): any[] {
-    const alergiasBase = [
-      { idAlergia: 1, alergia: 'Penicilina', observacion: 'Reacción severa' },
-      { idAlergia: 2, alergia: 'Mariscos', observacion: 'Urticaria' }
-    ];
-    return alergiasBase.slice(0, 2);
-  }
-
-  private getHabitosSimulados(pacienteId: number): any[] {
-    return [
-      { idHabito: 1, habito: 'Ejercicio', observacion: '3 veces por semana' },
-      { idHabito: 2, habito: 'Alimentación', observacion: 'Dieta balanceada' }
-    ];
-  }
-
-  private getMedicamentosSimulados(pacienteId: number): any[] {
-    return [
-      { idMedicamento: 1, nombreMedicamento: 'Enalapril 10mg', frecuencia: '1 vez al día' },
-      { idMedicamento: 2, nombreMedicamento: 'Omeprazol 20mg', frecuencia: 'Antes del desayuno' }
-    ];
-  }
-
-  private getConsultasSimuladas(pacienteId: number): any[] {
-    return [
-      { 
-        idConsulta: 1, 
-        motivo: 'Control de rutina anual', 
-        fechaIngreso: '2024-01-15',
-        profesional: 'Dr. Carlos López',
-        diagnostico: 'Estado de salud general bueno'
-      }
-    ];
-  }
-
-  private getExamenesSimulados(pacienteId: number): any[] {
-    return [
-      { 
-        idExamen: 1, 
-        nombreExamen: 'Hemograma completo', 
-        fecha: '2024-01-10',
-        resultado: 'Dentro de rangos normales',
-        valores: 'Hemoglobina: 14.2 g/dL'
-      },
-      { 
-        idExamen: 2, 
-        nombreExamen: 'Perfil lipídico', 
-        fecha: '2024-01-10',
-        resultado: 'Colesterol LDL elevado',
-        valores: 'LDL: 150 mg/dL'
-      }
-    ];
-  }
-
-  private getDiagnosticosSimulados(pacienteId: number): any[] {
-    return [
-      { 
-        idDiagnostico: 1, 
-        diagnostico: 'Hipertensión arterial leve',
-        fecha: '2024-01-15',
-        estado: 'Controlado'
-      }
-    ];
-  }
-
-  private getProcedimientosSimulados(pacienteId: number): any[] {
-    return [
-      { 
-        idProcedimiento: 1, 
-        nombreProcedimiento: 'Consulta general',
-        fecha: '2024-01-15',
-        resultado: 'Paciente estable'
-      }
-    ];
+    return this.delete<any>(`patients/${id}`).pipe(
+      tap(() => {
+        this._removeFromList(id);
+      }),
+      map(() => void 0), 
+      catchError(err => {
+        console.error('Error eliminarPaciente:', err);
+        return throwError(() => err);
+      })
+    );
   }
 }

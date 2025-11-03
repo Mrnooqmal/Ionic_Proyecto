@@ -1,130 +1,114 @@
-.header-familia {
+/* lista-pacientes-familia.component.scss */
+.lista-container {
+  padding: 0 16px;
+}
+
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding: 0 1rem;
+  margin-bottom: 16px;
 
   h3 {
-    color: #1a1a1a;
-    font-weight: 600;
     margin: 0;
     font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--texto-oscuro);
   }
 }
 
-.lista-pacientes {
-  background: transparent;
+.add-button {
+  --background: var(--lila-primario);
+  --background-hover: var(--lila-oscuro);
+  --background-activated: var(--lila-oscuro);
+  font-size: 0.8rem;
+  font-weight: 600;
+  
+  ion-icon {
+    font-size: 1rem;
+  }
 }
 
-.item-paciente {
-  --padding-start: 0;
-  --inner-padding-end: 0;
-  margin-bottom: 0.75rem;
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.pacientes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paciente-card {
+  background: var(--fondo-blanco);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--lila-borde);
   transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.15);
-  }
-
-  ion-avatar {
-    width: 50px;
-    height: 50px;
-    margin: 1rem;
-    
-    img {
-      border: 2px solid var(--lila-borde);
-    }
-  }
-
-  .info-paciente {
-    margin: 1rem 0;
-
-    h2 {
-      font-weight: 600;
-      color: #1a1a1a;
-      margin: 0 0 0.5rem 0;
-      font-size: 1rem;
-    }
-
-    p {
-      margin: 0.25rem 0;
-      font-size: 0.85rem;
-      color: #666;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      ion-icon {
-        font-size: 0.9rem;
-        color: var(--lila-primario);
-      }
-    }
-
-    .contacto-info {
-      font-size: 0.8rem;
-      color: #888;
-      margin-top: 0.5rem;
-    }
-  }
-
-  .badge-prevision {
-    font-size: 0.7rem;
-    padding: 0.25rem 0.5rem;
-  }
-
-  ion-button {
-    --padding-start: 0.5rem;
-    --padding-end: 0.5rem;
-    
-    ion-icon {
-      color: var(--lila-primario);
-    }
+  
+  &:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
   }
 }
 
-.estado-vacio {
+.paciente-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.paciente-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--lila-suave);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--lila-borde);
+  
+  ion-icon {
+    font-size: 1.5rem;
+    color: var(--lila-primario);
+  }
+}
+
+.paciente-info {
+  flex: 1;
+  
+  h4 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--texto-oscuro);
+  }
+  
+  .paciente-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--texto-medio);
+  }
+}
+
+.paciente-badges {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.empty-state {
   text-align: center;
-  padding: 3rem 1rem;
-
-  .contenido-vacio {
-    padding: 2rem;
-
-    .icono-vacio {
-      font-size: 3rem;
-      color: var(--lila-claro);
-      margin-bottom: 1rem;
-    }
-
-    h3 {
-      color: #1a1a1a;
-      margin: 0 0 1rem 0;
-      font-weight: 600;
-    }
-
-    p {
-      color: #666;
-      margin-bottom: 1.5rem;
-      line-height: 1.5;
-    }
+  padding: 40px 20px;
+  color: var(--texto-medio);
+  
+  ion-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
   }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .item-paciente {
-    .info-paciente {
-      h2 {
-        font-size: 0.95rem;
-      }
-      
-      p {
-        font-size: 0.8rem;
-      }
-    }
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
   }
 }

@@ -23,13 +23,10 @@
     color="danger"
     size="small"
     (click)="onEliminar()"
-    [disabled]="eliminando">
-    @if (eliminando) {
-      <ion-spinner name="crescent" slot="icon-only"></ion-spinner>
-    } @else {
-      <ion-icon name="trash" slot="icon-only"></ion-icon>
-    }
-  </ion-button>
+    *ngIf="!isEliminando()">
+    <ion-icon name="trash" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-spinner *ngIf="isEliminando()" name="crescent" slot="icon-only"></ion-spinner>
 </ion-buttons>
 
 <!-- Alerta de confirmación para eliminar -->

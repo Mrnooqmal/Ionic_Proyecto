@@ -20,6 +20,10 @@ import { Paciente } from  '../../../core/servicios/pacientes.service';
   ]
 })
 export class ListaPacientesFamiliaComponent {
+  @Input() mostrarEstadisticas: boolean = false;
+  @Input() estadisticas: any = {};
+  @Output() agregarFamilia = new EventEmitter<void>();
+  @Output() verFamilias = new EventEmitter<void>();
   
   @Input() pacientes: Paciente[] = [];
   @Input() mostrarBotonAgregar: boolean = true;

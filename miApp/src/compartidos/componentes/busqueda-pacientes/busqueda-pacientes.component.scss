@@ -1,26 +1,81 @@
-.busqueda-container {
-  margin-bottom: 1.5rem;
+/* busqueda-pacientes.component.scss */
+:host {
+  display: block;
+  background: var(--fondo-blanco);
+  padding: 16px;
+  border-bottom: 1px solid var(--lila-borde);
 }
 
-.resultados-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding: 0 0.5rem;
-}
+.search-header {
+  margin-bottom: 16px;
 
-.cargando-container, .error-container {
-  text-align: center;
-  padding: 3rem 1rem;
+  .search-title {
+    display: flex;
+    align-items: center;
+    justify-content: between;
+    margin-bottom: 12px;
 
-  ion-spinner {
-    margin-bottom: 1rem;
-    --color: var(--lila-primario);
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--texto-oscuro);
+    }
   }
+}
 
-  p {
-    color: #1a1a1a;
-    font-weight: 500;
+.search-container {
+  position: relative;
+  
+  ion-searchbar {
+    --background: var(--lila-suave);
+    --border-radius: 12px;
+    --box-shadow: none;
+    --color: var(--texto-oscuro);
+    --placeholder-color: var(--texto-claro);
+    --icon-color: var(--lila-primario);
+    padding: 0;
+  }
+}
+
+.stats-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+
+  .stat-card {
+    background: var(--lila-suave);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    
+    .stat-value {
+      display: block;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--lila-primario);
+    }
+    
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--texto-medio);
+    }
+  }
+}
+
+.error-card {
+  background: var(--sangre-rojo);
+  border-radius: 8px;
+  margin-top: 12px;
+  
+  .error-content {
+    padding: 12px;
+    text-align: center;
+    
+    ion-text {
+      color: white;
+      font-size: 0.9rem;
+    }
   }
 }

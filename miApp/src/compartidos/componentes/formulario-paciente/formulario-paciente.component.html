@@ -2,7 +2,6 @@
   <ion-card-content>
     <form (ngSubmit)="guardar()" #form="ngForm">
       
-      <!-- Estado de carga -->
       @if (cargando) {
         <div class="cargando-container">
           <ion-spinner></ion-spinner>
@@ -27,13 +26,12 @@
 
             <ion-col size="12" size-md="6">
               <ion-item>
-                <ion-label position="stacked">Correo Electrónico *</ion-label>
+                <ion-label position="stacked">Correo Electrónico (Opcional)</ion-label>
                 <ion-input 
+                  type="email" 
                   [(ngModel)]="paciente.correo" 
                   name="correo"
-                  type="email"
-                  placeholder="ejemplo@email.com"
-                  required>
+                  placeholder="Dejar vacío para generar automáticamente">
                 </ion-input>
               </ion-item>
             </ion-col>
@@ -117,6 +115,19 @@
           <ion-row>
             <ion-col size="12" size-md="6">
               <ion-item>
+                <ion-label position="stacked">Rol en la Familia</ion-label>
+                <ion-select [(ngModel)]="paciente.rolFamiliar" name="rolFamiliar">
+                  @for (rol of rolesFamilia; track rol.value) {
+                    <ion-select-option [value]="rol.value">{{ rol.label }}</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item>
                 <ion-label position="stacked">Ocupación</ion-label>
                 <ion-input 
                   [(ngModel)]="paciente.ocupacion" 
@@ -138,19 +149,16 @@
             </ion-col>
           </ion-row>
 
-          <!-- Botones de acción -->
           <ion-row>
             <ion-col size="12" class="botones-accion">
               <ion-button 
                 type="submit" 
                 color="tertiary"
                 expand="block"
-                [disabled]="guardando">
+                [disabled]="guardando || !form.valid">
                 <ion-icon name="save" slot="start"></ion-icon>
-                @if (guardando) {
-                  <ion-spinner name="crescent"></ion-spinner>
-                }
-                {{ modo === 'crear' ? 'Crear Paciente' : 'Actualizar Paciente' }}
+                <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+                {{ guardando ? 'Guardando...' : (modo === 'crear' ? 'Crear Paciente' : 'Actualizar Paciente') }}
               </ion-button>
 
               <ion-button 
@@ -170,11 +178,10 @@
   </ion-card-content>
 </ion-card>
 
-<!-- Toast para mensajes -->
 <ion-toast
   [isOpen]="mostrarToast"
   [message]="mensajeToast"
-  [duration]="3000"
+  [duration]="5000" 
   [color]="tipoToast"
   (didDismiss)="mostrarToast = false">
 </ion-toast>

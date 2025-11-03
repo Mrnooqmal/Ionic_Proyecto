@@ -1,0 +1,155 @@
+/* gestion-pacientes.page.scss */
+.gestion-pacientes-content {
+  --background: #f8fafc;
+}
+
+/* Header manteniendo colores originales pero mejorados */
+ion-toolbar[color="primary"] {
+  --background: var(--lila-primario);
+  --color: white;
+  
+  ion-back-button {
+    --color: white;
+  }
+  
+  ion-button {
+    --color: white;
+  }
+}
+
+/* Dashboard Hero mejorado */
+.dashboard-hero {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.1);
+  border: 1px solid var(--lila-borde);
+}
+
+.user-welcome {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  .user-avatar {
+    width: 60px;
+    height: 60px;
+    background: var(--lila-suave);
+    border: 2px solid var(--lila-borde);
+    
+    .avatar-icon {
+      font-size: 1.8rem;
+      color: var(--lila-primario);
+    }
+  }
+
+  .welcome-text {
+    flex: 1;
+    
+    h2 {
+      margin: 0 0 8px 0;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--texto-oscuro);
+    }
+    
+    p {
+      margin: 0;
+      color: var(--texto-medio);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+  }
+}
+
+/* NUEVO GRID DE MÉTRICAS */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  .metric-card {
+    background: var(--lila-suave);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--lila-borde);
+    transition: all 0.3s ease;
+
+    &:active {
+      transform: scale(0.98);
+      background: var(--lila-borde);
+    }
+
+    .metric-icon-container {
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      ion-icon {
+        font-size: 1.4rem;
+      }
+    }
+
+    .metric-info {
+      .metric-value {
+        display: block;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--texto-oscuro);
+        line-height: 1;
+      }
+
+      .metric-label {
+        font-size: 0.75rem;
+        color: var(--texto-medio);
+        margin-top: 4px;
+      }
+    }
+  }
+}
+
+/* Estados de carga y error manteniendo diseño original pero mejorado */
+.cargando {
+  text-align: center;
+  padding: 40px 20px;
+  
+  ion-spinner {
+    margin-bottom: 12px;
+    --color: var(--lila-primario);
+  }
+  
+  ion-text {
+    color: var(--texto-medio);
+  }
+}
+
+/* FAB personalizado */
+ion-fab-button[color="primary"] {
+  --background: var(--lila-primario);
+  --background-activated: var(--lila-oscuro);
+  --background-hover: var(--lila-claro);
+}
+
+ion-fab-button[color="secondary"] {
+  --background: var(--azul-primario);
+  --background-activated: var(--azul-oscuro);
+  --background-hover: var(--azul-claro);
+}
+
+/* Asegurar que los textos usen la fuente del sistema */
+ion-content {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}

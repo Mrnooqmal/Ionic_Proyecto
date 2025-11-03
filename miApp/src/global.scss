@@ -1,58 +1,92 @@
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
- */
-
-/* En global.css */
-/* Core CSS required for Ionic components to work properly */
-@import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
-@import "@ionic/angular/css/normalize.css";
-@import "@ionic/angular/css/structure.css";
-@import "@ionic/angular/css/typography.css";
-@import "@ionic/angular/css/display.css";
-
-/* Optional CSS utils that can be commented out */
-@import "@ionic/angular/css/padding.css";
-@import "@ionic/angular/css/float-elements.css";
-@import "@ionic/angular/css/text-alignment.css";
-@import "@ionic/angular/css/text-transformation.css";
-@import "@ionic/angular/css/flex-utils.css";
-
-
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-/* @import '@ionic/angular/css/palettes/dark.system.css'; */
-
-
-/* Variables globales de colores lila profesional */
-:root {
-  --lila-primario: #7c3aed;
-  --lila-oscuro: #5b21b6;
-  --lila-claro: #8b5cf6;
-  --lila-suave: #f5f3ff;
-  --lila-borde: #ddd6fe;
-  --lila-gradient: linear-gradient(135deg, #7c3aed, #5b21b6);
-
-  --sangre-rojo: #e72b2b;
-  --sangre-rojo-oscuro: #8b1010;    
+/* Agregar a global.css */
+/* Estilos para gestión de pacientes */
+.pacientes-grid {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
 }
 
-/* Para forzar modo claro durante desarrollo */
-body {
-  color-scheme: light;
+.paciente-card {
+  background: var(--fondo-blanco);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 8px 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--lila-borde);
+  transition: all 0.3s ease;
+  
+  &:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.paciente-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.paciente-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  border: 2px solid var(--lila-borde);
+}
+
+.paciente-info {
+  flex: 1;
+  
+  h3 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--texto-oscuro);
+  }
+  
+  .paciente-meta {
+    display: flex;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--texto-medio);
+  }
+}
+
+.paciente-badges {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.busqueda-container {
+  background: var(--fondo-blanco);
+  padding: 16px;
+  border-bottom: 1px solid var(--lila-borde);
+}
+
+.stats-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.stat-card {
+  background: var(--lila-suave);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  
+  .stat-value {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--lila-primario);
+  }
+  
+  .stat-label {
+    font-size: 0.7rem;
+    color: var(--texto-medio);
+  }
 }
