@@ -153,7 +153,7 @@
             <ion-col size="12" class="botones-accion">
               <ion-button 
                 type="submit" 
-                color="tertiary"
+                color="success"
                 expand="block"
                 [disabled]="guardando || !form.valid">
                 <ion-icon name="save" slot="start"></ion-icon>
@@ -176,35 +176,6 @@
       }
     </form>
   </ion-card-content>
-
-  <!-- Agregar esto al final del formulario, antes de cerrar el ion-card -->
-<ion-card>
-  <ion-card-content>
-    <div class="form-actions">
-      <ion-button 
-        expand="block" 
-        color="primary" 
-        (click)="guardar()"
-        [disabled]="guardando || cargando">
-        <ion-spinner *ngIf="guardando" name="crescent" slot="start"></ion-spinner>
-        <ion-icon *ngIf="!guardando" name="save" slot="start"></ion-icon>
-        {{ modo === 'crear' ? 'Crear Paciente' : 'Actualizar Paciente' }}
-      </ion-button>
-
-      <ion-button 
-        expand="block" 
-        color="medium" 
-        fill="outline" 
-        (click)="cancelar()"
-        [disabled]="guardando">
-        <ion-icon name="close" slot="start"></ion-icon>
-        Cancelar
-      </ion-button>
-    </div>
-  </ion-card-content>
-</ion-card>
-
-
 </ion-card>
 
 <ion-toast

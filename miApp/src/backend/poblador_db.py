@@ -29,9 +29,9 @@ class MediTrackPopulator:
         try:
             self.connection = mysql.connector.connect(**self.db_config)
             self.cursor = self.connection.cursor()
-            print("✅ Conexión establecida con la base de datos")
+            print("Conexión establecida con la base de datos")
         except mysql.connector.Error as err:
-            print(f"❌ Error de conexión: {err}")
+            print(f"Error de conexión: {err}")
             sys.exit(1)
     
     def disconnect(self):
@@ -40,7 +40,7 @@ class MediTrackPopulator:
             self.cursor.close()
         if self.connection:
             self.connection.close()
-        print("✅ Conexión cerrada")
+        print("Conexión cerrada")
     
     def check_existing_data(self, table_name):
         """Verificar si la tabla ya tiene datos"""
@@ -49,7 +49,7 @@ class MediTrackPopulator:
             count = self.cursor.fetchone()[0]
             return count > 0
         except mysql.connector.Error as err:
-            print(f"❌ Error al verificar datos en {table_name}: {err}")
+            print(f"Error al verificar datos en {table_name}: {err}")
             return False
     
     def get_max_id(self, table_name, id_column):
@@ -58,13 +58,13 @@ class MediTrackPopulator:
             self.cursor.execute(f"SELECT COALESCE(MAX({id_column}), 0) FROM {table_name}")
             return self.cursor.fetchone()[0]
         except mysql.connector.Error as err:
-            print(f"❌ Error al obtener max ID de {table_name}: {err}")
+            print(f"Error al obtener max ID de {table_name}: {err}")
             return 0
     
     def execute_batch(self, query, data, batch_size=500, table_name=""):
         """Ejecutar inserciones por lotes con manejo de errores"""
         if not data:
-            print(f"  ⚠️  {table_name}: No hay datos para insertar")
+            print(f"  {table_name}: No hay datos para insertar")
             return 0
             
         total_inserted = 0
@@ -75,9 +75,9 @@ class MediTrackPopulator:
                 self.connection.commit()
                 total_inserted += len(batch)
                 if table_name and len(data) > batch_size:
-                    print(f"  ↳ {table_name}: Insertados {total_inserted}/{len(data)} registros")
+                    print(f"  {table_name}: Insertados {total_inserted}/{len(data)} registros")
             except mysql.connector.Error as err:
-                print(f"❌ Error en lote de {table_name}: {err}")
+                print(f"Error en lote de {table_name}: {err}")
                 # Intentar insertar uno por uno para identificar el problema
                 successful = 0
                 for record in batch:
@@ -86,13 +86,13 @@ class MediTrackPopulator:
                         self.connection.commit()
                         successful += 1
                     except mysql.connector.Error as err2:
-                        print(f"   ↳ Registro fallido: {record} - Error: {err2}")
+                        print(f"   Registro fallido: {record} - Error: {err2}")
                         self.connection.rollback()
                 total_inserted += successful
-                print(f"  ↳ {table_name}: Insertados {successful}/{len(batch)} registros en este lote")
+                print(f"  {table_name}: Insertados {successful}/{len(batch)} registros en este lote")
         
         if table_name:
-            print(f"✅ {table_name}: {total_inserted} registros insertados")
+            print(f"{table_name}: {total_inserted} registros insertados")
         return total_inserted
     
     def populate_tablas_base(self):
@@ -164,7 +164,7 @@ class MediTrackPopulator:
         else:
             self.cursor.execute("SELECT idVacuna FROM Vacuna")
             self.ids_cache['vacunas'] = [row[0] for row in self.cursor.fetchall()]
-            print(f"✅ Vacuna: Ya existen {len(self.ids_cache['vacunas'])} registros")
+            print(f"Vacuna: Ya existen {len(self.ids_cache['vacunas'])} registros")
         
         # Tabla: Medicamento
         if not self.check_existing_data('Medicamento'):
@@ -311,7 +311,7 @@ class MediTrackPopulator:
         # Obtener todos los IDs de pacientes
         self.cursor.execute("SELECT idPaciente FROM Paciente")
         self.ids_cache['pacientes'] = [row[0] for row in self.cursor.fetchall()]
-        print(f"✅ Paciente: {len(self.ids_cache['pacientes'])} registros totales")
+        print(f"Paciente: {len(self.ids_cache['pacientes'])} registros totales")
     
     def populate_tablas_relacionales(self):
         """Poblar tablas relacionales de pacientes"""
@@ -324,7 +324,7 @@ class MediTrackPopulator:
             return
         
         # AlergiaPaciente
-        print("📊 Poblando AlergiaPaciente...")
+        print("Poblando AlergiaPaciente...")
         data_alergia_paciente = []
         relaciones_existentes = set()
 
@@ -357,7 +357,7 @@ class MediTrackPopulator:
         )
         
         # HabitoPaciente
-        print("📊 Poblando HabitoPaciente...")
+        print("Poblando HabitoPaciente...")
         data_habito_paciente = []
         relaciones_existentes = set()
 
@@ -388,7 +388,7 @@ class MediTrackPopulator:
         )
         
         # PacienteVacuna
-        print("📊 Poblando PacienteVacuna...")
+        print("Poblando PacienteVacuna...")
         data_paciente_vacuna = []
         relaciones_existentes = set()
 
@@ -421,7 +421,7 @@ class MediTrackPopulator:
         )
         
         # MedicamentoCronicoPaciente
-        print("📊 Poblando MedicamentoCronicoPaciente...")
+        print("Poblando MedicamentoCronicoPaciente...")
         data_medicamento_paciente = []
         relaciones_existentes = set()
 
@@ -454,7 +454,7 @@ class MediTrackPopulator:
             table_name="MedicamentoCronicoPaciente"
         )
         
-        print("✅ Tablas relacionales pobladas exitosamente")
+        print("Tablas relacionales pobladas exitosamente")
     
     def populate_familias(self):
         """Poblar tablas de familias"""
@@ -471,7 +471,7 @@ class MediTrackPopulator:
         pacientes_info = {row[0]: {'fecha_nacimiento': row[1], 'sexo': row[2]} for row in self.cursor.fetchall()}
         
         # Tabla: Familia
-        print("📊 Poblando Familia...")
+        print("Poblando Familia...")
         start_id_familia = self.get_max_id('Familia', 'idFamilia') + 1
         
         data_familia = []
@@ -511,7 +511,7 @@ class MediTrackPopulator:
         self.ids_cache['familias'] = [row[0] for row in self.cursor.fetchall()]
         
         # Tabla: FamiliaPaciente
-        print("📊 Poblando FamiliaPaciente...")
+        print("Poblando FamiliaPaciente...")
         data_familia_paciente = []
         
         for familia_id in self.ids_cache['familias']:
@@ -555,7 +555,7 @@ class MediTrackPopulator:
                     ))
         
         # Algunos pacientes pertenecen a múltiples familias (como hijos y cónyuges)
-        print("📊 Creando membresías múltiples...")
+        print("Creando membresías múltiples...")
         pacientes_en_familias = set()
         for familia_id, paciente_id, _, _ in data_familia_paciente:
             pacientes_en_familias.add(paciente_id)
@@ -580,8 +580,8 @@ class MediTrackPopulator:
             table_name="FamiliaPaciente"
         )
         
-        print(f"✅ Familias: {inserted_familias} familias creadas")
-        print(f"✅ FamiliaPaciente: {inserted_membresias} membresías creadas")
+        print(f"Familias: {inserted_familias} familias creadas")
+        print(f"FamiliaPaciente: {inserted_membresias} membresías creadas")
     
     def populate_consultas_y_diagnosticos(self):
         """Poblar consultas, diagnósticos y relacionados"""
@@ -595,7 +595,7 @@ class MediTrackPopulator:
         
         # Primero poblar Diagnostico si no existe
         if not self.check_existing_data('Diagnostico'):
-            print("📊 Poblando Diagnostico...")
+            print("Poblando Diagnostico...")
             diagnosticos = [
                 (True, 'J06.9', 'Infección aguda de las vías respiratorias superiores'),
                 (False, 'I10', 'Hipertensión esencial'),
@@ -621,7 +621,7 @@ class MediTrackPopulator:
             self.ids_cache['diagnosticos'] = [row[0] for row in self.cursor.fetchall()]
         
         # Poblar Consulta
-        print("📊 Poblando Consulta...")
+        print("Poblando Consulta...")
         start_id_consulta = self.get_max_id('Consulta', 'idConsulta') + 1
         
         data_consulta = []
@@ -656,7 +656,7 @@ class MediTrackPopulator:
         consultas_ids = [row[0] for row in self.cursor.fetchall()]
         
         # ConsultaDiagnostico
-        print("📊 Poblando ConsultaDiagnostico...")
+        print("Poblando ConsultaDiagnostico...")
         data_consulta_diagnostico = []
         relaciones_existentes = set()
         
@@ -687,16 +687,16 @@ class MediTrackPopulator:
             table_name="ConsultaDiagnostico"
         )
         
-        print(f"✅ Consultas: {inserted_consultas} consultas creadas")
-        print(f"✅ Diagnósticos: {len(data_consulta_diagnostico)} relaciones creadas")
+        print(f"Consultas: {inserted_consultas} consultas creadas")
+        print(f"Diagnósticos: {len(data_consulta_diagnostico)} relaciones creadas")
     
     def run(self):
         """Ejecutar todo el proceso de población"""
         try:
             self.connect()
             
-            print("🚀 INICIANDO POBLACIÓN DE BASE DE DATOS MEDITRACK")
-            print(f"🎯 Objetivo: {TOTAL_PACIENTES} pacientes, {TOTAL_FAMILIAS} familias")
+            print("INICIANDO POBLACIÓN DE BASE DE DATOS MEDITRACK")
+            print(f"Objetivo: {TOTAL_PACIENTES} pacientes, {TOTAL_FAMILIAS} familias")
             print("="*60)
             
             # Poblar en orden correcto considerando dependencias
@@ -708,7 +708,7 @@ class MediTrackPopulator:
             
             # Estadísticas finales
             print("\n" + "="*60)
-            print("📊 ESTADÍSTICAS FINALES")
+            print("ESTADÍSTICAS FINALES")
             print("="*60)
             
             tables_to_check = [
@@ -725,11 +725,11 @@ class MediTrackPopulator:
                     pass
             
             print("="*60)
-            print("✅ POBLACIÓN COMPLETADA EXITOSAMENTE")
+            print("POBLACIÓN COMPLETADA EXITOSAMENTE")
             print("="*60)
             
         except Exception as e:
-            print(f"❌ Error durante la población: {e}")
+            print(f"Error durante la población: {e}")
             import traceback
             traceback.print_exc()
             if self.connection:

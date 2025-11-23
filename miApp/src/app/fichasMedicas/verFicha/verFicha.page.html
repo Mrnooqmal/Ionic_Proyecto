@@ -1,14 +1,15 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="tertiary"> 
+<ion-header [translucent]="false" class="ion-no-border">
+  <ion-toolbar> 
     <ion-buttons slot="start">
-      <ion-button (click)="volverAtras()">
-        <ion-icon name="arrow-back"></ion-icon>
-      </ion-button>
+      <ion-back-button defaultHref="/gestion-pacientes"></ion-back-button>
     </ion-buttons>
     <ion-title>Ficha Médica</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="editarFicha()">
         <ion-icon name="create"></ion-icon>
+      </ion-button>
+      <ion-button (click)="eliminarDelGrupoFamiliar()" color="danger">
+        <ion-icon name="trash-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -41,153 +42,197 @@
   <!-- Datos de la ficha -->
   @if (!cargando && !error && ficha) {
     
-    <!-- Header del paciente CON CONTENEDOR FIXED -->
-    <div class="paciente-header">
-      <div class="avatar-container">
-        <ion-avatar class="avatar-paciente">
-          <img [src]="getAvatar()" [alt]="ficha.paciente.nombrePaciente" />
-        </ion-avatar>
-      </div>
-      <div class="info-basica">
-        <h1>{{ ficha.paciente.nombrePaciente }}</h1>
-        <p class="edad">{{ calcularEdad(ficha.paciente.fechaNacimiento) }} años</p>
-        <div class="badges">
-          <ion-badge color="danger" class="sangre-badge">
-            {{ ficha.paciente.tipoSangre }}
-          </ion-badge>
-          <ion-badge [color]="getPrevisionColor(ficha.paciente.prevision)" class="prevision-badge">
-            {{ ficha.paciente.prevision }}
-          </ion-badge>
-        </div>
-      </div>
-    </div>
-
-    <!-- Resto del contenido se mantiene igual -->
-    <!-- Información de contacto -->
-    <ion-card class="contacto-card">
-      <ion-card-content>
-        <ion-grid>
-          <ion-row>
-            <ion-col size="6">
-              <div class="contacto-item">
-                <div>
-                  <small>Teléfono</small>
-                  <p>{{ ficha.paciente.telefono || 'No registrado' }}</p>
-                </div>
-              </div>
-            </ion-col>
-            <ion-col size="6">
-              <div class="contacto-item">
-                <div>
-                  <small>Dirección</small>
-                  <p>{{ ficha.paciente.direccion || 'No registrada' }}</p>
-                </div>
-              </div>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col size="6">
-              <div class="contacto-item">
-                <div>
-                  <small>Ocupación</small>
-                  <p>{{ ficha.paciente.ocupacion || 'No registrada' }}</p>
-                </div>
-              </div>
-            </ion-col>
-            <ion-col size="6">
-              <div class="contacto-item">
-                <div>
-                  <small>Nacionalidad</small>
-                  <p>{{ ficha.paciente.nacionalidad || 'No registrada' }}</p>
-                </div>
-              </div>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Sección de Alergias -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>
-          Alergias
-        </ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="info-medica">
-          <p>{{ getAlergiasTexto() }}</p>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Sección de Medicamentos -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>
-          Medicamentos
-        </ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="info-medica">
-          <p>{{ getMedicamentosTexto() }}</p>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Sección de Hábitos -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>
-          Hábitos
-        </ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="info-medica">
-          <p>{{ getHabitosTexto() }}</p>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Sección de Consultas -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>
-          Últimas Consultas
-        </ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="info-medica">
-          <p>{{ getConsultasTexto() }}</p>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Sección de Exámenes -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>
-          Exámenes Recientes
-        </ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="info-medica">
-          <p>{{ getExamenesTexto() }}</p>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Botones de acción -->
-    <div class="botones-accion">
-      <ion-button expand="block" color="tertiary" (click)="editarFicha()">
-        Editar Ficha
-      </ion-button>
+    <!-- Contenedor principal con ancho máximo -->
+    <div class="ficha-container">
       
-      <ion-button expand="block" fill="outline" color="medium" (click)="imprimirFicha()">
-        Imprimir Ficha
-      </ion-button>
+      <!-- Header del paciente -->
+      <div class="paciente-header">
+        <div class="avatar-container">
+          <ion-avatar class="avatar-paciente">
+            <img [src]="getAvatar()" [alt]="ficha.paciente.nombrePaciente" />
+          </ion-avatar>
+        </div>
+        <div class="info-basica">
+          <h1>{{ ficha.paciente.nombrePaciente }}</h1>
+          <p class="edad">{{ calcularEdad(ficha.paciente.fechaNacimiento) }} años</p>
+          <div class="badges">
+            <ion-badge color="danger" class="sangre-badge">
+              {{ ficha.paciente.tipoSangre }}
+            </ion-badge>
+            <ion-badge [color]="getPrevisionColor(ficha.paciente.prevision)" class="prevision-badge">
+              {{ ficha.paciente.prevision }}
+            </ion-badge>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información de contacto con grid responsive -->
+      <ion-card class="contacto-card">
+        <ion-card-content>
+          <ion-grid class="datos-grid">
+            <ion-row>
+              <ion-col size="12" size-sm="6" size-md="6" size-lg="3">
+                <div class="contacto-item">
+                  <div>
+                    <small>Teléfono</small>
+                    <p>{{ ficha.paciente.telefono || 'No registrado' }}</p>
+                  </div>
+                </div>
+              </ion-col>
+              <ion-col size="12" size-sm="6" size-md="6" size-lg="3">
+                <div class="contacto-item">
+                  <div>
+                    <small>Dirección</small>
+                    <p>{{ ficha.paciente.direccion || 'No registrada' }}</p>
+                  </div>
+                </div>
+              </ion-col>
+              <ion-col size="12" size-sm="6" size-md="6" size-lg="3">
+                <div class="contacto-item">
+                  <div>
+                    <small>Ocupación</small>
+                    <p>{{ ficha.paciente.ocupacion || 'No registrada' }}</p>
+                  </div>
+                </div>
+              </ion-col>
+              <ion-col size="12" size-sm="6" size-md="6" size-lg="3">
+                <div class="contacto-item">
+                  <div>
+                    <small>Nacionalidad</small>
+                    <p>{{ ficha.paciente.nacionalidad || 'No registrada' }}</p>
+                  </div>
+                </div>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Sección de Alergias -->
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>
+            Alergias
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="info-medica">
+            <p>{{ getAlergiasTexto() }}</p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Grid de información médica para pantallas grandes -->
+      <ion-grid class="info-medica-grid">
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <!-- Sección de Medicamentos -->
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>
+                  Medicamentos
+                </ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="info-medica">
+                  <p>{{ getMedicamentosTexto() }}</p>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <ion-col size="12" size-md="6">
+            <!-- Sección de Hábitos -->
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>
+                  Hábitos
+                </ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="info-medica">
+                  <p>{{ getHabitosTexto() }}</p>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <!-- Sección de Consultas -->
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>
+                  Últimas Consultas
+                </ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="info-medica">
+                  <p>{{ getConsultasTexto() }}</p>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <ion-col size="12" size-md="6">
+            <!-- Sección de Exámenes -->
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>
+                  Exámenes Recientes
+                </ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div class="info-medica">
+                  <p>{{ getExamenesTexto() }}</p>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Botones de acción -->
+      <div class="botones-accion">
+        <ion-button expand="block" (click)="editarFicha()">
+          <ion-icon name="create" slot="start"></ion-icon>
+          Editar Ficha
+        </ion-button>
+        
+        <ion-button expand="block" fill="outline" (click)="imprimirFicha()">
+          <ion-icon name="print" slot="start"></ion-icon>
+          Imprimir Ficha
+        </ion-button>
+
+        <ion-button expand="block" fill="outline" color="danger" (click)="eliminarDelGrupoFamiliar()">
+          <ion-icon name="people-outline" slot="start"></ion-icon>
+          Eliminar del Grupo Familiar
+        </ion-button>
+      </div>
+
     </div>
 
   }
 
 </ion-content>
+
+<ion-toolbar class="bottom-nav">
+  <div class="nav-buttons">
+    <ion-button class="nav-button" routerLink="/dashboard">
+      <ion-icon name="home" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/home">
+      <ion-icon name="document" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/fichas/crear-paciente">
+      <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button active" routerLink="/ficha-medica">
+      <ion-icon name="medical" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/gestion-pacientes">
+      <ion-icon name="people" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</ion-toolbar>

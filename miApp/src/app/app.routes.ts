@@ -11,17 +11,13 @@ export const routes: Routes = [
     loadComponent: () => import('./fichasMedicas/home/home.page').then(m => m.HomePage)
   },
   {
-    path: 'fichas',
-    redirectTo: 'home',
-    pathMatch: 'full'
-  },
-  {
     path: 'dashboard',
     loadComponent: () => import('./dashboard/home-dashboard.page').then(m => m.HomeDashboardPage),
   },
   {
     path: 'fichas/crearFichas',
-    loadComponent: () => import('./fichasMedicas/crearFicha/crearFicha.page').then(m => m.CrearFichaPage)
+    redirectTo: 'examenes',
+    pathMatch: 'full'
   },
   {
     path: 'gestion-pacientes',
@@ -42,5 +38,42 @@ export const routes: Routes = [
   {
     path: 'fichas/editar-paciente/:id',
     loadComponent: () => import('./fichasMedicas/editar-paciente/editar-paciente.page').then(m => m.EditarPaciente)
+  },
+  // Rutas temporales para consultas, recetas y exámenes (redirigen a home por ahora)
+  {
+    path: 'buscar-fichas',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'consultas',
+    loadComponent: () => import('./consultas/consultas.page').then(m => m.ConsultasPage)
+  },
+  {
+    path: 'recetas',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'examenes',
+    loadComponent: () => import('./examenes/examenes.page').then(m => m.ExamenesPage)
+  },
+  {
+    path: 'examenes/crear',
+    loadComponent: () => import('./examenes/crear-examen.page').then(m => m.CrearExamenPage)
+  },
+  {
+    path: 'examenes/cargar',
+    loadComponent: () => import('./examenes/cargar-examen.page').then(m => m.CargarExamenPage)
+  },
+  {
+    path: 'configuracion',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'familia',
+    redirectTo: 'gestion-pacientes',
+    pathMatch: 'full'
   }
 ];

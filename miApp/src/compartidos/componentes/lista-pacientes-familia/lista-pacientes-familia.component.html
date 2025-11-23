@@ -26,16 +26,16 @@
       <h2>{{ paciente.nombrePaciente }}</h2>
       <p>
         <ion-icon name="person" slot="start"></ion-icon>
-        {{ calcularEdad(paciente.fechaNacimiento) }} años
+        {{ calcularEdad(paciente.fechaNacimiento) || 'N/D' }} años
       </p>
       <p>
         <ion-icon name="medical" slot="start"></ion-icon>
         <ion-badge [color]="getPrevisionColor(paciente.prevision)" class="badge-prevision">
-          {{ paciente.prevision }}
+          {{ paciente.prevision || 'Sin previsión' }}
         </ion-badge>
       </p>
       <p class="contacto-info">
-        {{ paciente.correo }} • {{ paciente.telefono }}
+        {{ paciente.correo || '—' }} • {{ paciente.telefono || '—' }}
       </p>
     </ion-label>
 

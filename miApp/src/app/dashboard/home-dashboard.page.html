@@ -1,118 +1,354 @@
-<ion-content [fullscreen]="true" class="dashboard-content">
+<ion-header [translucent]="false">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dashboard-content">
   <!-- Pull to Refresh -->
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Header Personalizado -->
-  <div class="dashboard-header">
-    <div class="user-info">
-      <ion-avatar class="user-avatar">
-        <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&h=150&fit=crop&crop=face" alt="Doctor" />
-      </ion-avatar>
-      <div class="user-details">
-        <h2>Hola, {{usuario.nombre}}</h2>
-        <p>{{usuario.especialidad}}</p>
-      </div>
-    </div>
-    <div class="header-actions">
-      <ion-icon name="notifications" class="notification-icon"></ion-icon>
-      <ion-badge color="danger" class="notification-badge">2</ion-badge>
-    </div>
-  </div>
-
-  <!-- Métricas Rápidas - CORREGIDAS LAS RUTAS -->
-  <div class="metrics-grid">
-    <div class="metric-card" (click)="navegar('/fichas/gestion-pacientes')">
-      <ion-icon name="people" color="primary" class="metric-icon"></ion-icon>
-      <div class="metric-info">
-        <span class="metric-value">{{metricas.totalPacientes}}</span>
-        <span class="metric-label">Pacientes</span>
-      </div>
-    </div>
-    
-    <div class="metric-card" (click)="navegar('/home')">
-      <ion-icon name="calendar" color="success" class="metric-icon"></ion-icon>
-      <div class="metric-info">
-        <span class="metric-value">{{metricas.consultasHoy}}</span>
-        <span class="metric-label">Hoy</span>
-      </div>
-    </div>
-    
-    <div class="metric-card" (click)="navegar('/home')">
-      <ion-icon name="flask" color="tertiary" class="metric-icon"></ion-icon>
-      <div class="metric-info">
-        <span class="metric-value">{{metricas.examenesPendientes}}</span>
-        <span class="metric-label">Exámenes</span>
-      </div>
-    </div>
-    
-    <div class="metric-card" (click)="navegar('/home')">
-      <ion-icon name="alert-circle" color="danger" class="metric-icon"></ion-icon>
-      <div class="metric-info">
-        <span class="metric-value">{{metricas.alertas}}</span>
-        <span class="metric-label">Alertas</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Acciones Rápidas -->
-  <div class="section-header">
-    <h3>Acciones Rápidas</h3>
-    <ion-text color="medium">Accede rápidamente</ion-text>
-  </div>
-
-  <ion-grid class="quick-actions-grid">
-    <ion-row>
-      <ion-col size="6" *ngFor="let accion of accionesRapidas">
-        <div class="quick-action-card" (click)="navegar(accion.ruta)" [class]="accion.color">
-          <div class="action-icon-container">
-            <ion-icon [name]="accion.icono" class="action-icon"></ion-icon>
-            <ion-badge *ngIf="accion.badge" color="danger" class="action-badge">
-              {{accion.badge}}
-            </ion-badge>
-          </div>
-          <div class="action-info">
-            <h4>{{accion.titulo}}</h4>
-            <p>{{accion.descripcion}}</p>
-          </div>
+  <div class="content-container">
+    <!-- Header Personalizado -->
+    <div class="dashboard-header">
+      <div class="user-info">
+        <ion-avatar class="user-avatar">
+          <!-- Avatar vacío -->
+        </ion-avatar>
+        <div class="user-details">
+          <h2>Hola, {{usuario.nombre}}</h2>
+          <p>{{usuario.info}}</p>
         </div>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
-  <!-- Recordatorios del Día -->
-  <div class="section-header">
-    <h3>Recordatorios de Hoy</h3>
-    <ion-text color="medium">No te pierdas nada</ion-text>
-  </div>
-
-  <div class="reminders-list">
-    <div *ngFor="let recordatorio of recordatorios" 
-         class="reminder-item"
-         [class.urgente]="recordatorio.urgente">
-      <div class="reminder-icon" [class]="getColorTipo(recordatorio.tipo)">
-        <ion-icon [name]="getIconoTipo(recordatorio.tipo)"></ion-icon>
       </div>
-      
-      <div class="reminder-content">
-        <div class="reminder-header">
-          <h4>{{recordatorio.titulo}}</h4>
-          <ion-chip *ngIf="recordatorio.urgente" color="danger" size="small">
-            <ion-label>Urgente</ion-label>
-          </ion-chip>
-        </div>
-        <p>{{recordatorio.descripcion}}</p>
-        <div class="reminder-meta">
-          <ion-icon name="time"></ion-icon>
-          <span>{{recordatorio.hora}} • {{recordatorio.fecha}}</span>
+      <div class="header-actions">
+        <ion-icon name="notifications" class="notification-icon"></ion-icon>
+        @if (metricas.examenesPendientes > 0) {
+          <ion-badge color="danger" class="notification-badge">{{metricas.examenesPendientes}}</ion-badge>
+        }
+      </div>
+    </div>
+
+    <!-- Métricas Rápidas -->
+    <div class="metrics-grid">
+      <div class="metric-card" (click)="navegar('/ficha-medica')">
+        <ion-icon name="calendar" color="primary" class="metric-icon"></ion-icon>
+        <div class="metric-info">
+          <span class="metric-value">{{metricas.totalConsultas}}</span>
+          <span class="metric-label">Consultas</span>
         </div>
       </div>
       
-      <ion-icon name="chevron-forward" class="reminder-arrow"></ion-icon>
+      <div class="metric-card" (click)="navegar('/ficha-medica')">
+        <ion-icon name="pulse" color="success" class="metric-icon"></ion-icon>
+        <div class="metric-info">
+          <span class="metric-value">{{metricas.consultasUltimos30Dias}}</span>
+          <span class="metric-label">Último mes</span>
+        </div>
+      </div>
+      
+      <div class="metric-card" (click)="navegar('/ficha-medica')">
+        <ion-icon name="flask" color="tertiary" class="metric-icon"></ion-icon>
+        <div class="metric-info">
+          <span class="metric-value">{{metricas.examenesPendientes}}</span>
+          <span class="metric-label">Exámenes</span>
+        </div>
+      </div>
+      
+      <div class="metric-card" (click)="navegar('/ficha-medica')">
+        <ion-icon name="medkit" color="warning" class="metric-icon"></ion-icon>
+        <div class="metric-info">
+          <span class="metric-value">{{metricas.medicamentosCronicos}}</span>
+          <span class="metric-label">Medicamentos</span>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- Espacio final para scroll -->
-  <div class="spacer"></div>
+    <!-- Gráficos de Resumen -->
+    @if (!cargando && !error && estadisticas) {
+      <div class="section-header">
+        <h3>Resumen de Salud</h3>
+        <ion-text color="medium">Visualización de tu historial médico</ion-text>
+      </div>
+
+      <!-- Gráficos Grid -->
+      <div class="charts-grid">
+        <!-- Actividad Mensual -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <ion-icon name="trending-up" color="primary"></ion-icon>
+            <h4>Actividad Reciente</h4>
+          </div>
+          <div class="chart-content">
+            <div class="stat-row">
+              <span class="stat-label">Consultas este mes</span>
+              <div class="stat-bar">
+                <div class="stat-fill primary" [style.width.%]="getConsultasPorcentaje()"></div>
+                <span class="stat-value">{{metricas.consultasUltimos30Dias}}</span>
+              </div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Total histórico</span>
+              <div class="stat-bar">
+                <div class="stat-fill success" style="width: 100%"></div>
+                <span class="stat-value">{{metricas.totalConsultas}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado de Exámenes -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <ion-icon name="flask" color="tertiary"></ion-icon>
+            <h4>Exámenes</h4>
+          </div>
+          <div class="chart-content">
+            <div class="circular-progress">
+              <div class="circle-outer">
+                <div class="circle-inner">
+                  <span class="progress-value">{{metricas.examenesPendientes}}</span>
+                  <span class="progress-label">Total</span>
+                </div>
+              </div>
+            </div>
+            <p class="chart-description">Exámenes en tu historial médico</p>
+          </div>
+        </div>
+
+        <!-- Medicamentos Activos -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <ion-icon name="medkit" color="warning"></ion-icon>
+            <h4>Tratamiento</h4>
+          </div>
+          <div class="chart-content">
+            <div class="circular-progress">
+              <div class="circle-outer warning">
+                <div class="circle-inner">
+                  <span class="progress-value">{{metricas.medicamentosCronicos}}</span>
+                  <span class="progress-label">Activos</span>
+                </div>
+              </div>
+            </div>
+            <p class="chart-description">Medicamentos crónicos en curso</p>
+          </div>
+        </div>
+
+        <!-- Diagnósticos -->
+        @if (getDiagnosticosRecientes().length > 0) {
+          <div class="chart-card">
+            <div class="chart-header">
+              <ion-icon name="medical" color="danger"></ion-icon>
+              <h4>Diagnósticos</h4>
+            </div>
+            <div class="chart-content">
+              <div class="diagnosis-list">
+                @for (diagnostico of getDiagnosticosRecientes().slice(0, 3); track diagnostico.idDiagnostico) {
+                  <div class="diagnosis-item">
+                    <ion-chip 
+                      [color]="diagnostico.gravedad === 'Alta' ? 'danger' : 'warning'" 
+                      size="small">
+                      <ion-label>{{diagnostico.nombreDiagnostico}}</ion-label>
+                    </ion-chip>
+                    <span class="diagnosis-date">{{formatearFecha(diagnostico.fecha)}}</span>
+                  </div>
+                }
+              </div>
+              <p class="chart-description">Últimos diagnósticos registrados</p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Estado de carga -->
+    @if (cargando) {
+      <div class="loading-container" style="text-align: center; padding: 2rem;">
+        <ion-text color="medium">Cargando tu información médica...</ion-text>
+      </div>
+    }
+
+    <!-- Últimas consultas -->
+    @if (!cargando && !error && estadisticas) {
+      <div class="section-header">
+        <h3>Últimas Consultas</h3>
+        <ion-text color="medium">Tu historial reciente</ion-text>
+      </div>
+
+      <div class="reminders-list">
+        @for (consulta of getUltimasConsultas(); track consulta.idConsulta) {
+          <div class="reminder-item" (click)="navegar('/ficha-medica')">
+            <div class="reminder-icon primary">
+              <ion-icon name="calendar"></ion-icon>
+            </div>
+            
+            <div class="reminder-content">
+              <div class="reminder-header">
+                <h4>{{consulta.nombreServicioSalud}}</h4>
+              </div>
+              <p>Dr(a). {{consulta.nombreProfesional}} - {{consulta.especialidad}}</p>
+              <div class="reminder-meta">
+                <ion-icon name="time"></ion-icon>
+                <span>{{formatearHora(consulta.hora)}} • {{formatearFecha(consulta.fecha)}}</span>
+              </div>
+            </div>
+            
+            <ion-icon name="chevron-forward" class="reminder-arrow"></ion-icon>
+          </div>
+        } @empty {
+          <div class="empty-state" style="text-align: center; padding: 2rem;">
+            <ion-icon name="calendar" color="medium" style="font-size: 3rem;"></ion-icon>
+            <p>No hay consultas registradas</p>
+          </div>
+        }
+      </div>
+
+      <!-- Diagnósticos Recientes -->
+      @if (getDiagnosticosRecientes().length > 0) {
+        <div class="section-header" style="margin-top: 2rem;">
+          <h3>Diagnósticos Recientes</h3>
+          <ion-text color="medium">Últimos 30 días</ion-text>
+        </div>
+
+        <div class="reminders-list">
+          @for (diagnostico of getDiagnosticosRecientes(); track diagnostico.idDiagnostico) {
+            <div class="reminder-item" 
+                 [class.urgente]="diagnostico.gravedad === 'Alta' || diagnostico.gravedad === 'Urgente'"
+                 (click)="navegar('/ficha-medica')">
+              <div class="reminder-icon" 
+                   [class.danger]="diagnostico.gravedad === 'Alta' || diagnostico.gravedad === 'Urgente'"
+                   [class.warning]="diagnostico.gravedad === 'Media'"
+                   [class.success]="diagnostico.gravedad === 'Baja'">
+                <ion-icon name="medical"></ion-icon>
+              </div>
+              
+              <div class="reminder-content">
+                <div class="reminder-header">
+                  <h4>{{diagnostico.nombreDiagnostico}}</h4>
+                  @if (diagnostico.gravedad) {
+                    <ion-chip 
+                      [color]="diagnostico.gravedad === 'Alta' || diagnostico.gravedad === 'Urgente' ? 'danger' : diagnostico.gravedad === 'Media' ? 'warning' : 'success'" 
+                      size="small">
+                      <ion-label>{{diagnostico.gravedad}}</ion-label>
+                    </ion-chip>
+                  }
+                </div>
+                <p>Dr(a). {{diagnostico.nombreProfesional}}</p>
+                <div class="reminder-meta">
+                  <ion-icon name="time"></ion-icon>
+                  <span>{{formatearFecha(diagnostico.fecha)}}</span>
+                </div>
+              </div>
+              
+              <ion-icon name="chevron-forward" class="reminder-arrow"></ion-icon>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Exámenes Recientes -->
+      @if (getExamenesPendientes().length > 0) {
+        <div class="section-header" style="margin-top: 2rem;">
+          <h3>Exámenes Recientes</h3>
+          <ion-text color="medium">Últimos exámenes realizados</ion-text>
+        </div>
+
+        <div class="reminders-list">
+          @for (examen of getExamenesPendientes(); track examen.idExamen) {
+            <div class="reminder-item" (click)="navegar('/ficha-medica')">
+              <div class="reminder-icon success">
+                <ion-icon name="flask"></ion-icon>
+              </div>
+              
+              <div class="reminder-content">
+                <div class="reminder-header">
+                  <h4>{{examen.nombreExamen}}</h4>
+                  <ion-chip color="success" size="small">
+                    <ion-label>{{examen.estadoProceso}}</ion-label>
+                  </ion-chip>
+                </div>
+                <p>{{examen.nombreServicioSalud}}</p>
+                <div class="reminder-meta">
+                  <ion-icon name="time"></ion-icon>
+                  <span>{{formatearFecha(examen.fecha)}}</span>
+                </div>
+              </div>
+              
+              <ion-icon name="chevron-forward" class="reminder-arrow"></ion-icon>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Medicamentos Crónicos -->
+      @if (getMedicamentosCronicos().length > 0) {
+        <div class="section-header" style="margin-top: 2rem;">
+          <h3>Tratamiento Actual</h3>
+          <ion-text color="medium">Medicamentos crónicos</ion-text>
+        </div>
+
+        <div class="reminders-list">
+          @for (medicamento of getMedicamentosCronicos(); track medicamento.idMedicamento) {
+            <div class="reminder-item" (click)="navegar('/ficha-medica')">
+              <div class="reminder-icon tertiary">
+                <ion-icon name="medkit"></ion-icon>
+              </div>
+              
+              <div class="reminder-content">
+                <div class="reminder-header">
+                  <h4>{{medicamento.nombreMedicamento}}</h4>
+                </div>
+                <p>{{medicamento.dosis}} - {{medicamento.frecuencia}}</p>
+                <div class="reminder-meta">
+                  <ion-icon name="time"></ion-icon>
+                  <span>Desde {{formatearFecha(medicamento.fechaInicio)}}</span>
+                </div>
+              </div>
+              
+              <ion-icon name="chevron-forward" class="reminder-arrow"></ion-icon>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- Error State -->
+    @if (error && !cargando) {
+      <div class="error-container" style="text-align: center; padding: 2rem;">
+        <ion-icon name="alert-circle" color="danger" style="font-size: 3rem;"></ion-icon>
+        <p>Error al cargar tu información médica</p>
+        <ion-text color="medium">
+          <small>Por favor, intenta nuevamente</small>
+        </ion-text>
+      </div>
+    }
+
+    <!-- Espacio final -->
+    <div class="spacer"></div>
+  </div>
 </ion-content>
+
+<ion-toolbar class="bottom-nav">
+  <div class="nav-buttons">
+    <ion-button class="nav-button active" (click)="navegar('/dashboard')">
+      <ion-icon name="home" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" (click)="navegar('/home')">
+      <ion-icon name="document" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" (click)="navegar('/fichas/crear-paciente')">
+      <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" (click)="navegar('/ficha-medica')">
+      <ion-icon name="medical" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" (click)="navegar('/gestion-pacientes')">
+      <ion-icon name="people" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</ion-toolbar>

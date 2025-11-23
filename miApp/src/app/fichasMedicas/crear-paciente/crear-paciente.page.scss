@@ -1,10 +1,12 @@
 .crear-paciente-content {
     --background: var(--ion-color-light);
+    --padding-bottom: 120px; /* Espacio para el menú inferior */
   }
   
   .content-container {
     max-width: 100%;
     margin: 0 auto;
+    padding-bottom: 140px; /* Padding adicional */
   }
   
   .hero-section {
@@ -99,10 +101,6 @@
         color: var(--ion-color-medium);
       }
     }
-  }
-  
-  .spacer {
-    height: 80px;
   }
   
   // Bottom Navigation

@@ -1,0 +1,33 @@
+<ion-header [translucent]="false">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/examenes"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Ingresar examen</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list>
+    <ion-item>
+      <ion-input label="Nombre del examen" labelPlacement="floating" [(ngModel)]="examen.nombre"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-input label="Tipo" labelPlacement="floating" [(ngModel)]="examen.tipo"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-input label="Unidad de medida" labelPlacement="floating" [(ngModel)]="examen.unidad"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-input label="Valor de referencia" labelPlacement="floating" [(ngModel)]="examen.valorReferencia"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-input type="date" label="Fecha" labelPlacement="floating" [(ngModel)]="examen.fecha"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-textarea label="Observaciones" labelPlacement="floating" autoGrow="true" [(ngModel)]="examen.observaciones"></ion-textarea>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="block" color="success" (click)="guardar()">Guardar</ion-button>
+</ion-content>

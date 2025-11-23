@@ -1,200 +1,273 @@
 .gestion-content {
-  --background: var(--ion-color-light);
-}
+  --background: #f8f9fa;
+  --padding-bottom: 100px; /* Espacio para el menú */
 
-.content-container {
-  max-width: 100%;
-  margin: 0 auto;
-}
+  .content-container {
+    padding: 16px;
+    padding-bottom: 120px; // Aumentado espacio para el bottom nav
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: calc(100vh - 120px); // Asegurar altura mínima correcta
+  }
 
-.hero-section {
-  text-align: center;
-  padding: 20px 16px;
-  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
-  color: white;
-  border-radius: 0 0 20px 20px;
-  margin-bottom: 16px;
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+    
+    .loading-content {
+      text-align: center;
+      
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+        --color: #667eea;
+      }
+      
+      h3 {
+        margin: 0 0 8px 0;
+        color: #2c3e50;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0;
+        color: #7f8c8d;
+      }
+    }
+  }
 
-  .hero-icon {
-    margin-bottom: 12px;
+  .hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    color: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+    .hero-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
 
     .user-avatar {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto;
+      width: 60px;
+      height: 60px;
       background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-
+      
       .avatar-icon {
-        font-size: 40px;
+        font-size: 28px;
         color: white;
       }
     }
-  }
 
-  .loading-state {
-    ion-skeleton-text {
-      --background-rgb: 255, 255, 255;
-      --border-radius: 4px;
-    }
-  }
-
-  .patient-info {
-    h1 {
-      margin: 0 0 8px 0;
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
-
-    p {
-      margin: 0;
-      opacity: 0.9;
-      font-size: 0.9rem;
-    }
-  }
-}
-
-.stats-quick-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 0 16px 20px 16px;
-
-  .stat-quick-card {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    border-radius: 12px;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-    &:active {
-      transform: scale(0.98);
-    }
-
-    ion-icon {
-      font-size: 24px;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-
-    .stat-content {
-      display: flex;
-      flex-direction: column;
-
-      .stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        line-height: 1.2;
-        color: var(--ion-color-dark);
+    .patient-info {
+      h1 {
+        margin: 0 0 4px 0;
+        font-size: 1.5em;
+        font-weight: 600;
       }
 
-      .stat-label {
-        font-size: 0.75rem;
-        color: var(--ion-color-medium);
+      p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 0.9em;
+      }
+    }
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+
+    .stat-card {
+      margin: 0;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+      ion-card-content {
+        padding: 16px;
+      }
+
+      .stat-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &.primary {
+          background: #e3f2fd;
+          color: #1976d2;
+        }
+
+        &.warning {
+          background: #fff3e0;
+          color: #f57c00;
+        }
+
+        &.secondary {
+          background: #f3e5f5;
+          color: #7b1fa2;
+        }
+
+        &.success {
+          background: #e8f5e8;
+          color: #388e3c;
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+
+      .stat-info {
+        h3 {
+          margin: 0;
+          font-size: 1.5em;
+          font-weight: 600;
+          color: #2c3e50;
+        }
+
+        p {
+          margin: 0;
+          font-size: 0.8em;
+          color: #7f8c8d;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+      }
+    }
+  }
+
+  .info-card {
+    margin: 16px 0;
+    border-radius: 12px;
+    border-left: 4px solid #2196f3;
+
+    .info-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .info-icon {
+        font-size: 24px;
+        color: #2196f3;
+      }
+
+      h3 {
+        margin: 0 0 4px 0;
+        color: #2c3e50;
+        font-size: 1em;
+      }
+
+      p {
+        margin: 0;
+        color: #7f8c8d;
+        font-size: 0.9em;
+      }
+    }
+  }
+
+  .error-card {
+    margin: 16px 0;
+    border-radius: 12px;
+    border-left: 4px solid #e74c3c;
+
+    .error-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      .error-icon {
+        font-size: 24px;
+        color: #e74c3c;
         margin-top: 2px;
       }
-    }
 
-    &.primary {
-      ion-icon {
-        color: var(--ion-color-primary);
+      h3 {
+        margin: 0 0 4px 0;
+        color: #2c3e50;
+        font-size: 1em;
+      }
+
+      p {
+        margin: 0 0 8px 0;
+        color: #7f8c8d;
+        font-size: 0.9em;
       }
     }
+  }
 
-    &.danger {
-      ion-icon {
-        color: var(--ion-color-danger);
-      }
+  .action-buttons {
+    margin: 24px 0;
+
+    .add-patient-btn {
+      --border-radius: 12px;
+      --padding-top: 16px;
+      --padding-bottom: 16px;
+      font-weight: 600;
     }
+  }
 
-    &.warning {
-      ion-icon {
-        color: var(--ion-color-warning);
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+
+    .empty-content {
+      .empty-icon {
+        font-size: 64px;
+        color: #bdc3c7;
+        margin-bottom: 16px;
       }
-    }
 
-    &.success {
-      ion-icon {
-        color: var(--ion-color-success);
+      h3 {
+        margin: 0 0 8px 0;
+        color: #2c3e50;
+        font-weight: 600;
+      }
+
+      p {
+        margin: 0 0 24px 0;
+        color: #7f8c8d;
+        line-height: 1.5;
+      }
+
+      .empty-button {
+        --border-radius: 12px;
       }
     }
   }
 }
 
-.error-card {
-  margin: 0 16px 16px 16px;
-  border-radius: 12px;
-
-  ion-card-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    ion-icon {
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-
-    p {
-      margin: 0;
-      font-size: 0.9rem;
-    }
-  }
-}
-
-.add-patient-btn {
-  margin: 20px 16px;
-  --border-radius: 12px;
-  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-
-  ion-icon {
-    font-size: 64px;
-    color: var(--ion-color-medium);
-    margin-bottom: 16px;
-  }
-
-  h3 {
-    margin: 0 0 8px 0;
-    color: var(--ion-color-dark);
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-
-  p {
-    margin: 0 0 20px 0;
-    color: var(--ion-color-medium);
-    font-size: 0.9rem;
-  }
-}
-
-// Bottom Navigation
 .bottom-nav {
   --background: white;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
 
   .nav-buttons {
     display: flex;
     justify-content: space-around;
-    align-items: center;
     padding: 8px 0;
 
     .nav-button {
-      --color: var(--ion-color-medium);
-      --color-activated: var(--ion-color-primary);
-      --color-focused: var(--ion-color-primary);
-      margin: 0;
-      height: 48px;
-      width: 48px;
-
+      --color: #7f8c8d;
+      --color-activated: #667eea;
+      --color-focused: #667eea;
+      
       &.active {
-        --color: var(--ion-color-primary);
+        --color: #667eea;
       }
 
       ion-icon {
@@ -204,20 +277,30 @@
   }
 }
 
-// Responsive
+/* Responsive */
 @media (min-width: 768px) {
-  .content-container {
-    max-width: 600px;
-  }
+  .gestion-content {
+    .stats-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
 
-  .hero-section {
-    margin: 16px 16px 24px 16px;
-    border-radius: 20px;
-  }
+    .hero-section {
+      padding: 32px;
 
-  .stats-quick-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    padding: 0 16px 24px 16px;
+      .user-avatar {
+        width: 80px;
+        height: 80px;
+        
+        .avatar-icon {
+          font-size: 36px;
+        }
+      }
+
+      .patient-info {
+        h1 {
+          font-size: 2em;
+        }
+      }
+    }
   }
 }

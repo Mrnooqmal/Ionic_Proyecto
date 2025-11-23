@@ -1,0 +1,30 @@
+<div class="stats-quick-grid" *ngIf="estadisticas">
+  <div class="stat-quick-card primary">
+    <ion-icon name="people"></ion-icon>
+    <div class="stat-content">
+      <span class="stat-value">{{ estadisticas.totalPacientes }}</span>
+      <span class="stat-label">Pacientes</span>
+    </div>
+  </div>
+  <div class="stat-quick-card danger">
+    <ion-icon name="alert-circle"></ion-icon>
+    <div class="stat-content">
+      <span class="stat-value">{{ estadisticas.conAlertas }}</span>
+      <span class="stat-label">Alertas</span>
+    </div>
+  </div>
+  <div class="stat-quick-card warning">
+    <ion-icon name="document"></ion-icon>
+    <div class="stat-content">
+      <span class="stat-value">{{ estadisticas.sinFichaCompleta }}</span>
+      <span class="stat-label">Incompletas</span>
+    </div>
+  </div>
+  <div class="stat-quick-card success">
+    <ion-icon name="business"></ion-icon>
+    <div class="stat-content">
+      <span class="stat-value">{{ estadisticas.totalFamilias }}</span>
+      <span class="stat-label">Familias</span>
+    </div>
+  </div>
+</div>

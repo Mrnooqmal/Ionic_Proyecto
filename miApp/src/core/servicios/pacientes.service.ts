@@ -45,6 +45,38 @@ export interface WsServiceLike {
 export class PacientesService extends BaseMysqlService {
   private pacientesSubject = new BehaviorSubject<Paciente[]>([]);
   pacientes$ = this.pacientesSubject.asObservable();
+  
+  // Mock data para desarrollo/fallback cuando backend no disponible
+  private mockPacientes: Paciente[] = [
+    {
+      idPaciente: 1,
+      nombrePaciente: 'Juan Carlos Pérez',
+      fechaNacimiento: '1985-03-15',
+      correo: 'juan@example.com',
+      telefono: '+56912345678',
+      direccion: 'Calle Principal 123, Santiago',
+      sexo: 'M',
+      nacionalidad: 'Chilena',
+      ocupacion: 'Ingeniero',
+      prevision: 'Fonasa',
+      tipoSangre: 'O+',
+      fotoPerfil: undefined
+    },
+    {
+      idPaciente: 2,
+      nombrePaciente: 'María González López',
+      fechaNacimiento: '1990-07-22',
+      correo: 'maria@example.com',
+      telefono: '+56987654321',
+      direccion: 'Av. Secundaria 456, Valparaíso',
+      sexo: 'F',
+      nacionalidad: 'Chilena',
+      ocupacion: 'Médica',
+      prevision: 'Isapre',
+      tipoSangre: 'A-',
+      fotoPerfil: undefined
+    }
+  ];
 
   constructor(
     protected override http: HttpClient,
@@ -57,12 +89,12 @@ export class PacientesService extends BaseMysqlService {
 
 
   private cargarPacientesIniciales() {
-    this.get<any>('patients')
+    this.get<any>('pacientes')
       .pipe(
         map(resp => resp?.data ?? resp ?? []),
         catchError(err => {
-          console.error('Error cargarPacientesIniciales:', err);
-          return of([]);
+          console.warn('Backend no disponible. Usando datos mock para desarrollo.', err.message);
+          return of(this.mockPacientes);
         })
       )
       .subscribe((pacientes: Paciente[]) => this.pacientesSubject.next(pacientes));
@@ -113,12 +145,17 @@ export class PacientesService extends BaseMysqlService {
   /**
    * getPacienteById: devuelve un Observable<Paciente>.
    * Si el backend envuelve en { success, data } lo mapeamos automáticamente.
+   * Si falla, intenta usar datos mock.
    */
   getPacienteById(id: number): Observable<Paciente> {
-    return this.get<any>(`patients/${id}`).pipe(
+    return this.get<any>(`pacientes/${id}`).pipe(
       map(resp => resp?.data ?? resp),
       catchError(err => {
-        console.error('Error getPacienteById:', err);
+        console.warn(`No se pudo obtener paciente ${id} del backend. Buscando en mock...`, err.message);
+        const mockPaciente = this.mockPacientes.find(p => p.idPaciente === id);
+        if (mockPaciente) {
+          return of(mockPaciente);
+        }
         return throwError(() => err);
       })
     );
@@ -187,7 +224,7 @@ export class PacientesService extends BaseMysqlService {
   }
 
   crearPaciente(paciente: Omit<Paciente, 'idPaciente'>): Observable<Paciente> {
-    return this.post<any>('patients', paciente).pipe(
+    return this.post<any>('pacientes', paciente).pipe(
       map(resp => resp?.data ?? resp),
       tap((nuevo: Paciente) => {
         // insertamos en la lista local
@@ -202,7 +239,7 @@ export class PacientesService extends BaseMysqlService {
   }
 
   actualizarPaciente(id: number, cambios: Partial<Paciente>): Observable<Paciente> {
-    return this.put<any>(`patients/${id}`, cambios).pipe(
+    return this.put<any>(`pacientes/${id}`, cambios).pipe(
       map(resp => resp?.data ?? resp),
       tap((pacienteActualizado: Paciente) => {
         this._upsertInList(pacienteActualizado);
@@ -215,7 +252,7 @@ export class PacientesService extends BaseMysqlService {
   }
 
   eliminarPaciente(id: number): Observable<void> {
-    return this.delete<any>(`patients/${id}`).pipe(
+    return this.delete<any>(`pacientes/${id}`).pipe(
       tap(() => {
         this._removeFromList(id);
       }),

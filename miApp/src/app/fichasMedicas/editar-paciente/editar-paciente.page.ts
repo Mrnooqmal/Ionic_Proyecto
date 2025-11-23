@@ -4,9 +4,9 @@ import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
   IonButtons, IonIcon, IonBackButton
 } from '@ionic/angular/standalone';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { arrowBack } from 'ionicons/icons';
+import { arrowBack, home, document, add, medical, people } from 'ionicons/icons';
 import { FormularioPacienteComponent } from '../../../compartidos/componentes/formulario-paciente/formulario-paciente.component';
 import { Paciente } from  '../../../core/servicios/pacientes.service';
 
@@ -17,6 +17,7 @@ import { Paciente } from  '../../../core/servicios/pacientes.service';
   standalone: true,
   imports: [
     CommonModule, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton,
+    IonButton, IonIcon, RouterModule,
     FormularioPacienteComponent
   ]
 })
@@ -27,7 +28,7 @@ export class EditarPaciente implements OnInit {
     private route: ActivatedRoute,
     private router: Router
   ) {
-    addIcons({ arrowBack });
+    addIcons({ arrowBack, home, document, add, medical, people });
   }
 
   ngOnInit() {

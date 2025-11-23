@@ -82,11 +82,11 @@ export class FormularioPacienteComponent implements OnInit {
 
     if (!this.validarFormulario()) return;
 
-    console.log('📤 Datos a enviar:', this.paciente);
+    console.log('Datos a enviar:', this.paciente);
 
     const payload = this.prepararPayload();
 
-    console.log('📤 Payload final:', payload);
+    console.log('Payload final:', payload);
 
     this.guardando = true;
 
@@ -120,14 +120,14 @@ export class FormularioPacienteComponent implements OnInit {
   private crearPaciente(payload: any) {
     this.pacientesService.crearPaciente(payload).subscribe({
       next: (nuevoPaciente) => {
-        console.log('✅ Paciente creado:', nuevoPaciente);
+        console.log('Paciente creado:', nuevoPaciente);
         this.mostrarMensaje('Paciente creado exitosamente', 'success');
         this.guardado.emit(nuevoPaciente);
         this.guardando = false;
       },
       error: (error) => {
-        console.log('❌ Error completo:', error);
-        console.log('❌ Error body:', error.error);
+        console.log('Error completo:', error);
+        console.log('Error body:', error.error);
         const msg = this.procesarErrores(error);
         this.mostrarMensaje('Error al crear paciente: ' + msg, 'error');
         this.guardando = false;
@@ -138,14 +138,14 @@ export class FormularioPacienteComponent implements OnInit {
   private actualizarPaciente(payload: any) {
     this.pacientesService.actualizarPaciente(this.pacienteId!, payload).subscribe({
       next: (pacienteActualizado) => {
-        console.log('✅ Paciente actualizado:', pacienteActualizado);
+        console.log('Paciente actualizado:', pacienteActualizado);
         this.mostrarMensaje('Paciente actualizado exitosamente', 'success');
         this.guardado.emit(pacienteActualizado);
         this.guardando = false;
       },
       error: (error) => {
-        console.log('❌ Error completo al actualizar:', error);
-        console.log('❌ Error body:', error.error);
+        console.log('Error completo al actualizar:', error);
+        console.log('Error body:', error.error);
         const msg = this.procesarErrores(error);
         this.mostrarMensaje('Error al actualizar paciente: ' + msg, 'error');
         console.error('Error detalle:', error);
@@ -157,7 +157,7 @@ export class FormularioPacienteComponent implements OnInit {
   private procesarErrores(error: any): string {
     if (error?.error?.errors) {
       const errores = error.error.errors;
-      console.log('🔍 Errores de validación:', errores);
+      console.log('Errores de validación:', errores);
       
       return Object.entries(errores)
         .map(([campo, mensajes]) => {

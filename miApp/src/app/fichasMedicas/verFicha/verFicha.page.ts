@@ -1,18 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
   IonButtons, IonIcon, IonCard, IonCardHeader, IonCardTitle, 
-  IonCardContent, IonGrid, IonRow, IonCol, IonBadge, IonSpinner, IonAvatar
+  IonCardContent, IonGrid, IonRow, IonCol, IonBadge, IonSpinner, IonAvatar, IonBackButton,
+  AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, person, medical, document, create, print, 
   clipboard, analytics, construct, warning, fitness, cafe,
-  location, call, calendar, school, globe
+  location, call, calendar, school, globe, trashOutline, peopleOutline
 } from 'ionicons/icons';
 import { PacientesService, FichaMedicaCompleta, Paciente } from '../../../core/servicios/pacientes.service';
+import { FamiliaService } from '../../../core/servicios/familias.service';
 
 @Component({
   selector: 'app-verFicha',
@@ -23,24 +25,31 @@ import { PacientesService, FichaMedicaCompleta, Paciente } from '../../../core/s
     RouterModule, IonContent, IonHeader, IonTitle, IonToolbar, 
     CommonModule, IonButton, IonButtons, IonIcon, 
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, 
-    IonGrid, IonRow, IonCol, IonBadge, IonSpinner, IonAvatar
+    IonGrid, IonRow, IonCol, IonBadge, IonSpinner, IonAvatar,
+    IonBackButton
   ]
 })
 export class VerFichaPage implements OnInit {
+  @ViewChild(IonContent) ionContent!: IonContent;
+  
   fichaId: string = '';
   ficha!: FichaMedicaCompleta;
   cargando: boolean = true;
   error: string = '';
+  pacienteActualId = 1;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private pacientesService: PacientesService
+    private pacientesService: PacientesService,
+    private familiaService: FamiliaService,
+    private alertController: AlertController,
+    private toastController: ToastController
   ) {
     addIcons({ 
       arrowBack, person, medical, document, create, print, 
       clipboard, analytics, construct, warning, fitness, cafe,
-      location, call, calendar, school, globe
+      location, call, calendar, school, globe, trashOutline, peopleOutline
     });
   }
 
@@ -50,6 +59,14 @@ export class VerFichaPage implements OnInit {
     this.cargarFicha();
   }
 
+  ionViewDidEnter() {
+    // Scroll al top cuando la vista se carga
+    setTimeout(() => {
+      if (this.ionContent) {
+        this.ionContent.scrollToTop(0);
+      }
+    }, 100);
+  }
   cargarFicha() {
     this.cargando = true;
     this.error = '';
@@ -157,7 +174,7 @@ export class VerFichaPage implements OnInit {
   }
 
   volverAtras() {
-    this.router.navigate(['/fichas']);
+    this.router.navigate(['/home']);
   }
 
   getPrevisionColor(prevision: string): string {
@@ -169,5 +186,89 @@ export class VerFichaPage implements OnInit {
       default:
         return 'medium';
     }
+  }
+
+  async eliminarDelGrupoFamiliar() {
+    const alert = await this.alertController.create({
+      header: 'Eliminar del grupo familiar',
+      message: `¿Estás seguro de que deseas eliminar a ${this.ficha.paciente.nombrePaciente} del grupo familiar? Esta acción no se puede deshacer.`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            await this.confirmarEliminacion();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async confirmarEliminacion() {
+    try {
+      // Obtener las familias del paciente actual
+      this.familiaService.getFamiliasPorPaciente(this.pacienteActualId).subscribe({
+        next: async (familias: any) => {
+          const familiasArray = familias.data || [];
+          
+          if (familiasArray.length === 0) {
+            await this.mostrarToast('No se encontró ninguna familia', 'warning');
+            return;
+          }
+
+          // Buscar la familia que contiene al paciente a eliminar
+          let familiaEncontrada = null;
+          for (const familia of familiasArray) {
+            const miembro = familia.miembros?.find((m: any) => m.idPaciente === parseInt(this.fichaId));
+            if (miembro) {
+              familiaEncontrada = familia;
+              break;
+            }
+          }
+
+          if (!familiaEncontrada) {
+            await this.mostrarToast('El paciente no está en tu grupo familiar', 'warning');
+            return;
+          }
+
+          // Eliminar el miembro de la familia
+          this.familiaService.eliminarMiembro(familiaEncontrada.idFamilia, parseInt(this.fichaId)).subscribe({
+            next: async () => {
+              await this.mostrarToast('Paciente eliminado del grupo familiar exitosamente', 'success');
+              // Volver a la página de gestión de pacientes
+              this.router.navigate(['/gestion-pacientes']);
+            },
+            error: async (err) => {
+              console.error('Error eliminando miembro:', err);
+              await this.mostrarToast('Error al eliminar del grupo familiar', 'danger');
+            }
+          });
+        },
+        error: async (err) => {
+          console.error('Error obteniendo familias:', err);
+          await this.mostrarToast('Error al verificar la familia', 'danger');
+        }
+      });
+    } catch (error) {
+      console.error('Error en confirmación:', error);
+      await this.mostrarToast('Error inesperado', 'danger');
+    }
+  }
+
+  private async mostrarToast(mensaje: string, color: string) {
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 3000,
+      position: 'top',
+      color: color
+    });
+    await toast.present();
   }
 }

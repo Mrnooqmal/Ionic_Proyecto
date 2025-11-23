@@ -1,0 +1,10 @@
+ion-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --color: white;
+  }
+}
+
+ion-content {
+  --padding-bottom: 120px; /* Espacio generoso para el menú inferior */
+}

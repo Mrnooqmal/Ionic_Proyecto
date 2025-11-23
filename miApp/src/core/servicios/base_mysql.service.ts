@@ -19,9 +19,9 @@ export class BaseMysqlService {
     });
   }
   protected handleError(error: HttpErrorResponse) {
-    console.log('🔍 ERROR COMPLETO:', error);
-    console.log('🔍 ERROR BODY:', error.error);
-    console.log('🔍 ERROR ERRORS:', error.error?.errors);
+    console.log('ERROR COMPLETO:', error);
+    console.log('ERROR BODY:', error.error);
+    console.log('ERROR ERRORS:', error.error?.errors);
     
     let errorMessage = 'Error desconocido';
     if (error.error instanceof ErrorEvent) {

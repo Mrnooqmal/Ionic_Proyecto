@@ -1,13 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton,    
   IonRefresher, IonRefresherContent, 
-  IonButtons, IonBackButton, IonSpinner, IonText, IonCard, IonCardContent,
-  IonIcon, IonFab, IonFabButton, IonFabList, IonAvatar, IonSkeletonText, IonChip } from '@ionic/angular/standalone';
+  IonButtons, IonBackButton, IonSpinner, IonCard, IonCardContent,
+  IonIcon, IonAvatar 
+} from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { arrowBack, refresh, person, add, personAdd, people, medical } from 'ionicons/icons';
+import { 
+  arrowBack, refresh, person, add, personAdd, people, medical,
+  search, alertCircle, checkmarkCircle, time, informationCircle 
+} from 'ionicons/icons';
 
 import { BusquedaPacientesComponent } from '../../../compartidos/componentes/busqueda-pacientes/busqueda-pacientes.component';
 import { ListaPacientesFamiliaComponent } from '../../../compartidos/componentes/lista-pacientes-familia/lista-pacientes-familia.component';
@@ -19,29 +23,30 @@ import { FamiliaService, Familia } from '../../../core/servicios/familias.servic
   templateUrl: './gestion-pacientes.page.html',
   styleUrls: ['./gestion-pacientes.page.scss'],
   standalone: true,
-  imports: [ IonSkeletonText, 
-    CommonModule, 
+  imports: [ 
+    CommonModule,
     IonContent, IonHeader, IonTitle, IonToolbar, IonButton,
     IonButtons, IonCard, IonCardContent,
-    IonRefresher, IonRefresherContent, 
-    IonIcon,IonAvatar,
+    IonRefresher, IonRefresherContent,
+    IonIcon, IonAvatar, IonBackButton, IonSpinner,
     BusquedaPacientesComponent,
     ListaPacientesFamiliaComponent
   ]
 })
 export class GestionPacientesPage implements OnInit {
+  @ViewChild(IonContent) ionContent!: IonContent;
   
   familias: Familia[] = [];
   pacientesFamilia: Paciente[] = [];
   pacientesFiltrados: Paciente[] = [];
-  cargando = false;
+  cargando = true;
   error = '';
   terminoBusqueda = '';
 
   pacienteActualId = 1; 
   pacienteActualNombre = 'Paciente Principal';
 
-  // NUEVAS ESTADÍSTICAS
+  // ESTADÍSTICAS MEJORADAS
   estadisticas = {
     totalPacientes: 0,
     conAlertas: 0,
@@ -49,64 +54,164 @@ export class GestionPacientesPage implements OnInit {
     totalFamilias: 0
   };
 
+  private inicializado = false;
+
   constructor(
     private familiaService: FamiliaService,
     private pacientesService: PacientesService,
     private router: Router
   ) {
-    addIcons({ arrowBack, refresh, person, add, personAdd, people, medical });
+    addIcons({ 
+      arrowBack, refresh, person, add, personAdd, people, medical,
+      search, alertCircle, checkmarkCircle, time, informationCircle 
+    });
   }
 
   ngOnInit() {
-    this.cargarPacienteActual();
+    console.log('GestionPacientesPage - ngOnInit - Carga inicial');
+    this.cargarDatosIniciales();
   }
 
-  ionViewWillEnter() {
-    this.cargarFamiliares();
+  ionViewDidEnter() {
+    console.log('GestionPacientesPage - ionViewDidEnter - Vista visible');
+    
+    // Scroll al top cuando la vista se carga
+    setTimeout(() => {
+      if (this.ionContent) {
+        this.ionContent.scrollToTop(0);
+      }
+    }, 100);
+    
+    // Solo recargar si ya estaba inicializado pero necesitamos datos frescos
+    if (this.inicializado && (this.pacientesFamilia.length === 0 || this.error)) {
+      console.log('Recargando datos porque la vista está visible pero hay problemas');
+      this.cargarDatosIniciales();
+    }
   }
 
-  cargarPacienteActual() {
+  cargarDatosIniciales() {
+    this.cargando = true;
+    this.error = '';
+    
+    console.log('Cargando datos iniciales...');
+    
+    // Primero cargar el paciente actual
     this.pacientesService.getPacienteById(this.pacienteActualId).subscribe({
       next: (paciente) => {
         this.pacienteActualNombre = paciente?.nombrePaciente || 'Paciente Principal';
-        this.inicializarFamiliaPacienteActual(); 
+        console.log('Paciente actual cargado:', this.pacienteActualNombre);
+        this.cargarFamiliasYMiembros(); 
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error cargando paciente actual:', err);
         this.pacienteActualNombre = 'Paciente Principal';
-        this.inicializarFamiliaPacienteActual();
+        this.cargarFamiliasYMiembros();
       }
     });
   }
 
-  inicializarFamiliaPacienteActual() {
+  cargarFamiliasYMiembros() {
+    console.log('Cargando familias y miembros...');
     this.familiaService.getFamiliasPorPaciente(this.pacienteActualId).subscribe({
       next: (familias) => {
         console.log('Familias encontradas:', familias);
         
         if (!familias || familias.length === 0) {
-          console.log('🏠 Inicializando familia única para paciente:', this.pacienteActualId);
+          console.log('No hay familias, creando familia única...');
           this.crearFamiliaUnicaParaPacienteActual();
         } else {
-          console.log('✅ Familia ya existe, cargando miembros...');
-          this.cargarFamiliares(); 
+          console.log('Familias encontradas, procesando miembros...');
+          this.procesarFamiliasYMiembros(familias);
         }
       },
       error: (err) => {
-        console.error('❌ Error al verificar familias:', err);
-        this.crearFamiliaUnicaParaPacienteActual();
+        console.error('Error al cargar familias:', err);
+        this.error = 'Error al cargar el grupo familiar';
+        this.cargando = false;
       }
     });
   }
 
+  private procesarFamiliasYMiembros(familias: any) {
+    try {
+      // Procesar las familias recibidas
+      this.familias = Array.isArray(familias) ? familias : (familias?.data || []);
+      console.log(`${this.familias.length} familias procesadas`);
+
+      // Extraer y procesar todos los miembros de todas las familias
+      const todosLosMiembros: Paciente[] = [];
+      
+      this.familias.forEach((familia: Familia) => {
+        if (familia.miembros && Array.isArray(familia.miembros)) {
+          familia.miembros.forEach((miembro: any) => {
+            // El miembro puede ser el paciente directamente o tener una propiedad paciente
+            const paciente = miembro.paciente || miembro;
+            if (paciente && paciente.idPaciente) {
+              todosLosMiembros.push({
+                idPaciente: paciente.idPaciente,
+                nombrePaciente: paciente.nombrePaciente || 'Paciente sin nombre',
+                fechaNacimiento: paciente.fechaNacimiento,
+                correo: paciente.correo || null,
+                telefono: paciente.telefono || null,
+                direccion: paciente.direccion || null,
+                sexo: paciente.sexo,
+                nacionalidad: paciente.nacionalidad || null,
+                ocupacion: paciente.ocupacion || null,
+                prevision: paciente.prevision || null,
+                tipoSangre: paciente.tipoSangre || null,
+                fotoPerfil: paciente.fotoPerfil || null
+              });
+            }
+          });
+        }
+      });
+
+      // Eliminar duplicados por idPaciente
+      const pacientesUnicos = this.eliminarDuplicados(todosLosMiembros);
+      
+      // Ordenar por nombre
+      this.pacientesFamilia = pacientesUnicos.sort((a, b) => 
+        (a.nombrePaciente || '').localeCompare(b.nombrePaciente || '')
+      );
+
+      console.log(`${this.pacientesFamilia.length} pacientes únicos cargados`);
+      
+      // Actualizar datos filtrados y estadísticas
+      this.pacientesFiltrados = this.pacientesFamilia;
+      this.calcularEstadisticas();
+      this.inicializado = true;
+      this.cargando = false;
+
+    } catch (error) {
+      console.error('Error procesando familias y miembros:', error);
+      this.error = 'Error al procesar los datos del grupo familiar';
+      this.cargando = false;
+    }
+  }
+
+  private eliminarDuplicados(pacientes: Paciente[]): Paciente[] {
+    const visto = new Set<number>();
+    return pacientes.filter(paciente => {
+      if (visto.has(paciente.idPaciente)) {
+        return false;
+      }
+      visto.add(paciente.idPaciente);
+      return true;
+    });
+  }
+
   private crearFamiliaUnicaParaPacienteActual() {
+    console.log('Creando familia única...');
+    
     this.familiaService.crearFamilia({
       nombre: `Familia de ${this.pacienteActualNombre}`,
       descripcion: 'Grupo familiar principal',
       idOwner: this.pacienteActualId
     }).subscribe({
       next: (nuevaFamilia) => {
-        console.log('✅ Familia única creada para paciente actual:', nuevaFamilia);
+        console.log('Familia única creada:', nuevaFamilia);
         
+        // Agregar al paciente actual como miembro
         this.familiaService.agregarMiembro(
           nuevaFamilia.idFamilia,
           this.pacienteActualId,
@@ -114,79 +219,25 @@ export class GestionPacientesPage implements OnInit {
           this.pacienteActualId
         ).subscribe({
           next: () => {
-            console.log('✅ Paciente actual agregado a su familia');
-            this.cargarFamiliares(); 
+            console.log('Paciente actual agregado a la familia');
+            // Recargar los datos completos
+            this.cargarFamiliasYMiembros();
           },
           error: (err) => {
-            console.warn('⚠️ Paciente actual ya estaba en la familia:', err);
-            this.cargarFamiliares(); 
+            console.warn('Paciente actual ya estaba en la familia:', err);
+            // Aún así recargar los datos
+            this.cargarFamiliasYMiembros();
           }
         });
       },
       error: (err) => {
-        console.error('❌ Error al crear familia:', err);
+        console.error('Error al crear familia:', err);
         this.error = 'No se pudo crear el grupo familiar';
         this.cargando = false;
       }
     });
   }
 
-  cargarFamiliares(): Promise<void> {
-    return new Promise((resolve) => {
-      this.cargando = true;
-      this.error = '';
-
-      console.log('🔍 Cargando familias para paciente:', this.pacienteActualId);
-
-      this.familiaService.getFamiliasPorPaciente(this.pacienteActualId).subscribe({
-        next: (familias) => {
-          console.log('🔍 Familias recibidas del servidor:', familias);
-          
-          try {
-            const resultado: any = familias;
-            this.familias = Array.isArray(resultado) ? resultado : (resultado?.data ?? []);
-
-            console.log('🔍 Familias procesadas:', this.familias);
-
-            this.pacientesFamilia = this.familias.reduce((acc: Paciente[], f: Familia) => {
-              if (f.miembros && Array.isArray(f.miembros)) {
-                const miembros = f.miembros
-                  .map(m => {
-                    const paciente = m.paciente || m;
-                    return paciente;
-                  })
-                  .filter((p): p is Paciente => !!(p && p.idPaciente));
-                return [...acc, ...miembros];
-              }
-              return acc;
-            }, []);
-
-            console.log('🔍 Pacientes en familia final:', this.pacientesFamilia);
-            
-            // CALCULAR NUEVAS ESTADÍSTICAS
-            this.calcularEstadisticas();
-            
-            this.pacientesFiltrados = this.pacientesFamilia;
-            this.cargando = false;
-            resolve();
-          } catch (error) {
-            console.error('❌ Error procesando datos de familia:', error);
-            this.error = 'Error al procesar los datos';
-            this.cargando = false;
-            resolve();
-          }
-        },
-        error: (err) => {
-          console.error('❌ Error al cargar grupo familiar:', err);
-          this.error = 'No se pudieron cargar los familiares';
-          this.cargando = false;
-          resolve();
-        }
-      });
-    });
-  }
-
-  // NUEVO MÉTODO PARA CALCULAR ESTADÍSTICAS
   private calcularEstadisticas() {
     this.estadisticas.totalPacientes = this.pacientesFamilia.length;
     this.estadisticas.totalFamilias = this.familias.length;
@@ -196,14 +247,17 @@ export class GestionPacientesPage implements OnInit {
       !p.tipoSangre || !p.prevision
     ).length;
     
-    // Calcular alertas (aquí puedes personalizar la lógica)
+    // Calcular alertas (pacientes sin teléfono o con tipo de sangre O-)
     this.estadisticas.conAlertas = this.pacientesFamilia.filter(p => 
-      p.tipoSangre === 'O-' || !p.telefono // Ejemplo de alertas
+      !p.telefono || p.tipoSangre === 'O-'
     ).length;
+
+    console.log('Estadísticas calculadas:', this.estadisticas);
   }
 
   async handleRefresh(event: any) {
-    await this.cargarFamiliares();
+    console.log('Pull to refresh activado');
+    await this.cargarDatosIniciales();
     event.target.complete();
   }
 
@@ -216,10 +270,11 @@ export class GestionPacientesPage implements OnInit {
     }
 
     this.pacientesFiltrados = this.pacientesFamilia.filter(p =>
-      p.nombrePaciente.toLowerCase().includes(this.terminoBusqueda) ||
-      p.correo?.toLowerCase().includes(this.terminoBusqueda) ||
-      p.telefono?.includes(this.terminoBusqueda) ||
-      p.prevision?.toLowerCase().includes(this.terminoBusqueda)
+      (p.nombrePaciente || '').toLowerCase().includes(this.terminoBusqueda) ||
+      (p.correo || '').toLowerCase().includes(this.terminoBusqueda) ||
+      (p.telefono || '').includes(this.terminoBusqueda) ||
+      (p.prevision || '').toLowerCase().includes(this.terminoBusqueda) ||
+      (p.ocupacion || '').toLowerCase().includes(this.terminoBusqueda)
     );
   }
 
@@ -229,33 +284,39 @@ export class GestionPacientesPage implements OnInit {
   }
 
   onRecargar() {
-    this.cargarFamiliares();
+    console.log('Recarga manual solicitada');
+    this.cargarDatosIniciales();
   }
 
   onPacienteSeleccionado(paciente: Paciente) {
-    this.router.navigate(['/fichas/verFicha', paciente.idPaciente]);
+    console.log('Paciente seleccionado:', paciente.idPaciente);
+    this.router.navigate(['/fichas/verFicha', paciente.idPaciente], {
+      replaceUrl: false
+    }).then(() => {
+      // Scroll al top después de navegar - CORREGIDO
+      setTimeout(() => {
+        if (this.ionContent) {
+          this.ionContent.scrollToTop(0);
+        }
+      }, 50);
+    });
   }
 
   onAgregarPaciente() {
-    this.router.navigate(['/fichas/crear-paciente']);
+    console.log('➕ Agregar nuevo paciente');
+    this.router.navigate(['/fichas/crear-paciente'], {
+      replaceUrl: false
+    });
   }
 
-  // NUEVOS MÉTODOS PARA GESTIÓN DE FAMILIAS
+  // MÉTODOS FALTANTES - AGREGADOS
   onAgregarFamilia() {
-    // Navegar a creación de nueva familia
-    console.log('Agregar nueva familia');
+    console.log('Agregar nueva familia - Función no implementada aún');
     // this.router.navigate(['/familias/crear']);
   }
 
   onVerTodasFamilias() {
-    // Navegar a gestión de familias
-    console.log('Ver todas las familias');
+    console.log('Ver todas las familias - Función no implementada aún');
     // this.router.navigate(['/familias']);
-  }
-
-  onVerEstadisticas() {
-    // Navegar a estadísticas detalladas
-    console.log('Ver estadísticas detalladas');
-    // this.router.navigate(['/estadisticas']);
   }
 }

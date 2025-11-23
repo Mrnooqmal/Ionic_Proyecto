@@ -1,0 +1,88 @@
+<ion-header [translucent]="false">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Consultas</ion-title>
+  </ion-toolbar>
+  </ion-header>
+
+<ion-content class="consultas-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="content-container">
+    @if (cargando) {
+      <ion-card>
+        <ion-card-content>
+          Cargando consultas...
+        </ion-card-content>
+      </ion-card>
+    }
+
+    @if (error) {
+      <ion-card color="light">
+        <ion-card-content>
+          {{ error }}
+        </ion-card-content>
+      </ion-card>
+    }
+
+    @for (c of consultas; track c.idConsulta) {
+      <ion-card class="consulta-card">
+        <ion-card-header>
+          <ion-card-title>
+            <ion-icon name="calendar"></ion-icon>
+            {{ c.fechaIngreso | date:'dd/MM/yyyy' }}
+            <ion-badge *ngIf="c.tipoConsulta" color="primary">{{ c.tipoConsulta }}</ion-badge>
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="fila">
+            <ion-icon name="time"></ion-icon>
+            <span>{{ c.hora || '-' }}</span>
+          </div>
+          <div class="fila">
+            <ion-icon name="medical"></ion-icon>
+            <span class="motivo">{{ c.motivo || 'Sin motivo registrado' }}</span>
+          </div>
+          <div class="fila" *ngIf="c.servicio">
+            <ion-icon name="business"></ion-icon>
+            <span>{{ c.servicio }}</span>
+          </div>
+          <div class="fila" *ngIf="c.profesional">
+            <ion-icon name="person"></ion-icon>
+            <span>{{ c.profesional }}<small *ngIf="c.especialidad"> — {{ c.especialidad }}</small></span>
+          </div>
+          <div class="observacion" *ngIf="c.observacion">
+            {{ c.observacion }}
+          </div>
+          <div class="egreso" *ngIf="c.condicionEgreso">
+            Condición de egreso: <strong>{{ c.condicionEgreso }}</strong>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    }
+  </div>
+</ion-content>
+
+<ion-toolbar class="bottom-nav">
+  <div class="nav-buttons">
+    <ion-button class="nav-button" routerLink="/dashboard">
+      <ion-icon name="home" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/home">
+      <ion-icon name="document" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/examenes">
+      <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/examenes">
+      <ion-icon name="medical" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/gestion-pacientes">
+      <ion-icon name="people" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</ion-toolbar>

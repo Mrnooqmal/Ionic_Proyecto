@@ -44,8 +44,12 @@ export class HomePage implements OnInit {
   pacienteActual: Paciente | null = null;
   cargando = true;
   edad: number = 0;
+  mensajeError: string | null = null;
+  esModoDemo = false;
 
-  constructor(private pacientesService: PacientesService) {
+  constructor(
+    private pacientesService: PacientesService
+  ) {
     addIcons({ 
       home, 
       addCircle, 
@@ -75,10 +79,16 @@ export class HomePage implements OnInit {
         this.pacienteActual = paciente;
         this.calcularEdad();
         this.cargando = false;
+        this.mensajeError = null;
+        // Detecta si estamos usando datos mock
+        if (!paciente.correo?.includes('@')) {
+          this.esModoDemo = true;
+        }
       },
       error: (err) => {
         console.error('Error al cargar paciente:', err);
         this.cargando = false;
+        this.mensajeError = 'No se puede conectar con el servidor. Por favor, verifica la conexion a internet o reinicia la aplicacion.';
       }
     });
   }

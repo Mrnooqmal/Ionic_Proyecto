@@ -151,20 +151,109 @@
           expand="block" 
           class="save-button"
           (click)="subirArchivo()"
-          [disabled]="subiendo">
-          <ion-spinner *ngIf="subiendo" name="crescent"></ion-spinner>
-          {{ subiendo ? 'Guardando...' : 'Confirmar y guardar' }}
+          [disabled]="subiendo || analizandoTextract">
+          <ion-spinner *ngIf="subiendo || analizandoTextract" name="crescent"></ion-spinner>
+          {{ (subiendo || analizandoTextract) ? 'Procesando...' : 'Confirmar y guardar' }}
         </ion-button>
       </div>
     </div>
 
-    <!-- ETAPA 3: COMPLETADO -->
+    <!-- ETAPA 3: ANÁLISIS CON TEXTRACT -->
+    <div *ngIf="etapa === 'textract-analisis'" class="textract-analisis-section">
+      <ion-card class="analisis-card">
+        <ion-card-content>
+          <div class="textract-header">
+            <ion-icon name="cloud" class="aws-icon"></ion-icon>
+            <h2>Analizando con AWS Textract</h2>
+          </div>
+          
+          <ion-spinner></ion-spinner>
+          <p class="analisis-texto">{{ mensaje }}</p>
+
+          <div class="info-textract">
+            <ion-icon name="information-circle"></ion-icon>
+            <small>Se está extrayendo información del documento automáticamente...</small>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- ETAPA 4: SUGERENCIAS DE TEXTRACT -->
+    <div *ngIf="etapa === 'textract-sugerencias'" class="textract-sugerencias-section">
+      <ion-card class="sugerencias-header-card">
+        <ion-card-header>
+          <ion-card-title>
+            <ion-icon name="sparkles"></ion-icon>
+            Sugerencias de AWS Textract
+          </ion-card-title>
+          <ion-card-subtitle>
+            Confianza: <strong>{{ confianzaTextract }}%</strong>
+          </ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+
+      <!-- Campos sugeridos -->
+      <div class="sugerencias-list">
+        <ion-card class="sugerencia-card" *ngFor="let sug of sugerenciasTextract; let i = index">
+          <ion-card-header>
+            <ion-card-title>{{ sug.campo }}</ion-card-title>
+            <ion-card-subtitle>
+              Confianza: {{ sug.confianza }}%
+            </ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="sugerencia-valor">
+              <strong>Valor detectado:</strong>
+              <ion-input 
+                [(ngModel)]="sug.valorSugerido"
+                [value]="sug.valorSugerido"
+                (ionChange)="editarSugerencia(i, $event.detail.value ?? '')">
+              </ion-input>
+            </div>
+
+            <div *ngIf="sug.opciones && sug.opciones.length > 0" class="opciones-alternativas">
+              <small>Opciones alternativas:</small>
+              <div class="opciones-buttons">
+                <ion-button 
+                  size="small" 
+                  fill="outline"
+                  *ngFor="let opcion of sug.opciones"
+                  (click)="editarSugerencia(i, opcion)">
+                  {{ opcion }}
+                </ion-button>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- Acciones -->
+      <div class="sugerencias-actions">
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          (click)="rechazarSugerenciasTextract()">
+          <ion-icon name="close" slot="start"></ion-icon>
+          Ignorar sugerencias
+        </ion-button>
+        <ion-button 
+          expand="block" 
+          class="accept-button"
+          (click)="aceptarSugerenciasTextract()">
+          <ion-icon name="checkmark" slot="start"></ion-icon>
+          Aceptar sugerencias
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- ETAPA 5: COMPLETADO -->
     <div *ngIf="etapa === 'completado'" class="completado-section">
       <ion-card class="success-card">
         <ion-card-content>
           <ion-icon name="checkmark-circle"></ion-icon>
           <h2>¡Examen cargado!</h2>
-          <p>El archivo se ha guardado correctamente</p>
+          <p *ngIf="analisisTextract">Análisis completado con AWS Textract</p>
+          <p *ngIf="!analisisTextract">El archivo se ha guardado correctamente</p>
           <small>{{ archivoSeleccionado?.name }}</small>
         </ion-card-content>
       </ion-card>

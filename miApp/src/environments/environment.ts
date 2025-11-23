@@ -14,17 +14,17 @@ export const environment = {
   },
 
   apiUrls: {
-    base: 'http://34.233.199.164:8000/api',
-    pacientes: 'http://34.233.199.164:8000/api/patients',
-    consultas: 'http://34.233.199.164:8000/api/consultations',
-    diagnosticos: 'http://34.233.199.164:8000/api/diagnostics',
-    medicamentos: 'http://34.233.199.164:8000/api/medicines',
-    profesionales: 'http://34.233.199.164:8000/api/professionals',
-    servicios: 'http://34.233.199.164:8000/api/services',
-    tiposConsulta: 'http://34.233.199.164:8000/api/types/consult',
-    tiposProcedimiento: 'http://34.233.199.164:8000/api/types/procedure',
-    vacunas: 'http://34.233.199.164:8000/api/vaccines',
-    alergias: 'http://34.233.199.164:8000/api/allergies',
+    base: 'http://localhost:3001/api',
+    pacientes: 'http://localhost:3001/api/pacientes',
+    consultas: 'http://localhost:3001/api/consultas',
+    diagnosticos: 'http://localhost:3001/api/diagnosticos',
+    medicamentos: 'http://localhost:3001/api/medicamentos',
+    profesionales: 'http://localhost:3001/api/profesionales',
+    servicios: 'http://localhost:3001/api/servicios',
+    tiposConsulta: 'http://localhost:3001/api/tipos-consulta',
+    tiposProcedimiento: 'http://localhost:3001/api/tipos-procedimiento',
+    vacunas: 'http://localhost:3001/api/vacunas',
+    alergias: 'http://localhost:3001/api/alergias',
   },
 };
 /*

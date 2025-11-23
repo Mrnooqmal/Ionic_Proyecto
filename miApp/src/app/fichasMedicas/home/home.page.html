@@ -66,16 +66,28 @@
         </ion-card-header>
       </ion-card>
 
-      <!-- Grupo Familiar -->
-      <ion-card class="action-card" button="true" routerLink="/gestion-pacientes">
-        <div class="card-icon secondary">
-          <ion-icon name="people"></ion-icon>
-        </div>
-        <ion-card-header>
-          <ion-card-title>Grupo Familiar</ion-card-title>
-          <ion-card-subtitle>Administrar familia</ion-card-subtitle>
-        </ion-card-header>
-      </ion-card>
+      <!-- Grupo Familiar + Exámenes (dos en línea) -->
+      <div class="card-row">
+        <ion-card class="action-card" button="true" routerLink="/gestion-pacientes">
+          <div class="card-icon secondary">
+            <ion-icon name="people"></ion-icon>
+          </div>
+          <ion-card-header>
+            <ion-card-title>Grupo Familiar</ion-card-title>
+            <ion-card-subtitle>Administrar familia</ion-card-subtitle>
+          </ion-card-header>
+        </ion-card>
+
+        <ion-card class="action-card" button="true" routerLink="/examenes">
+          <div class="card-icon info">
+            <ion-icon name="flask"></ion-icon>
+          </div>
+          <ion-card-header>
+            <ion-card-title>Exámenes</ion-card-title>
+            <ion-card-subtitle>Resultados de laboratorio</ion-card-subtitle>
+          </ion-card-header>
+        </ion-card>
+      </div>
 
       <!-- Consultas (más ancho) -->
       <ion-card class="action-card large-card" button="true" routerLink="/consultas">
@@ -85,28 +97,6 @@
         <ion-card-header>
           <ion-card-title>Consultas</ion-card-title>
           <ion-card-subtitle>Historial médico completo</ion-card-subtitle>
-        </ion-card-header>
-      </ion-card>
-
-      <!-- Recetas Médicas -->
-      <ion-card class="action-card" button="true" routerLink="/recetas">
-        <div class="card-icon warning">
-          <ion-icon name="receipt"></ion-icon>
-        </div>
-        <ion-card-header>
-          <ion-card-title>Recetas</ion-card-title>
-          <ion-card-subtitle>Medicamentos activos</ion-card-subtitle>
-        </ion-card-header>
-      </ion-card>
-
-      <!-- Exámenes -->
-      <ion-card class="action-card" button="true" routerLink="/examenes">
-        <div class="card-icon info">
-          <ion-icon name="flask"></ion-icon>
-        </div>
-        <ion-card-header>
-          <ion-card-title>Exámenes</ion-card-title>
-          <ion-card-subtitle>Resultados de laboratorio</ion-card-subtitle>
         </ion-card-header>
       </ion-card>
     </div>

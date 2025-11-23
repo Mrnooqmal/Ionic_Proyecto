@@ -2,120 +2,68 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { 
-  IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
-  IonButtons, IonIcon, IonCard, IonCardHeader, IonCardTitle, 
-  IonCardContent, IonSkeletonText, IonChip, IonLabel,
-  IonGrid, IonRow, IonCol, IonBadge, IonRefresher, IonRefresherContent, IonAvatar, IonText } from '@ionic/angular/standalone';
+  IonContent, IonIcon, IonChip, IonLabel,
+  IonBadge, IonRefresher, IonButton,
+  IonRefresherContent, IonAvatar, IonText,
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
   home, person, heart, pulse, thermometer, scale,
   calendar, medical, flask, document, alertCircle,
   trendingUp, trendingDown, checkmarkCircle,
   people, receipt, add, settings, water,
-  notifications, chevronForward, time, personAdd
+  notifications, chevronForward, time, personAdd,
+  medkit, clipboard
 } from 'ionicons/icons';
+import { DashboardService, DashboardPacienteStats } from '../../core/servicios/dashboard.service';
+import { PacientesService, Paciente } from '../../core/servicios/pacientes.service';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './home-dashboard.page.html',
   styleUrls: ['./home-dashboard.page.scss'],
   standalone: true,
-  imports: [IonText, IonAvatar, IonRefresherContent, IonRefresher, 
+  imports: [
     CommonModule,
-    IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
-    IonButtons, IonIcon, IonCard, IonCardHeader, IonCardTitle, 
-    IonCardContent, IonSkeletonText, IonChip, IonLabel,
-    IonGrid, IonRow, IonCol, IonBadge
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton,
+    IonText, IonAvatar, IonRefresherContent, IonRefresher, 
+    IonContent, IonIcon, IonChip, IonLabel, IonBadge
   ]
 })
 export class HomeDashboardPage implements OnInit {
   cargando = true;
+  error = false;
   
-  // Datos del usuario (doctor)
+  // Simula sesión del paciente ID 1
+  idPacienteActual = 1;
   usuario = {
-    nombre: 'Dr. García',
-    especialidad: 'Cardiología'
+    nombre: 'Cargando...',
+    info: 'Mi panel de salud'
   };
 
   // Métricas del dashboard
   metricas = {
-    totalPacientes: 145,
-    consultasHoy: 8,
-    examenesPendientes: 3,
-    alertas: 2
+    totalConsultas: 0,
+    consultasUltimos30Dias: 0,
+    examenesPendientes: 0,
+    medicamentosCronicos: 0
   };
 
-  // Acciones rápidas - CORREGIDAS LAS RUTAS
-  accionesRapidas = [
-    {
-      titulo: 'Nuevo Paciente',
-      descripcion: 'Registrar paciente',
-      icono: 'person-add',
-      ruta: '/fichas/crear-paciente', // Ruta existente
-      color: 'primary',
-      badge: null
-    },
-    {
-      titulo: 'Consultas',
-      descripcion: 'Agendar cita',
-      icono: 'calendar',
-      ruta: '/home', // Usando home como temporal
-      color: 'success',
-      badge: null
-    },
-    {
-      titulo: 'Exámenes',
-      descripcion: 'Resultados pendientes',
-      icono: 'document',
-      ruta: '/home', // Usando home como temporal
-      color: 'warning',
-      badge: 3
-    },
-    {
-      titulo: 'Recetas',
-      descripcion: 'Prescripciones',
-      icono: 'medical',
-      ruta: '/home', // Usando home como temporal
-      color: 'tertiary',
-      badge: null
-    }
-  ];
+  // Datos estadísticos
+  estadisticas: DashboardPacienteStats | null = null;
 
-  // Recordatorios
-  recordatorios = [
-    {
-      titulo: 'Consulta con Ana López',
-      descripcion: 'Control mensual - Hipertensión',
-      tipo: 'consulta',
-      hora: '09:30 AM',
-      fecha: 'Hoy',
-      urgente: false
-    },
-    {
-      titulo: 'Revisar resultados',
-      descripcion: 'Laboratorio - Carlos Rodríguez',
-      tipo: 'examen',
-      hora: '11:00 AM',
-      fecha: 'Hoy',
-      urgente: true
-    },
-    {
-      titulo: 'Sesión de equipo',
-      descripcion: 'Reunión médica semanal',
-      tipo: 'reunion',
-      hora: '03:00 PM',
-      fecha: 'Hoy',
-      urgente: false
-    }
-  ];
-
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private dashboardService: DashboardService,
+    private pacientesService: PacientesService
+  ) {
     addIcons({ 
       home, person, heart, pulse, thermometer, scale,
       calendar, medical, flask, document, alertCircle,
       trendingUp, trendingDown, checkmarkCircle,
       people, receipt, add, settings, water,
-      notifications, chevronForward, time, personAdd
+      notifications, chevronForward, time, personAdd,
+      medkit, clipboard
     });
   }
 
@@ -125,47 +73,93 @@ export class HomeDashboardPage implements OnInit {
 
   async cargarDatos() {
     this.cargando = true;
+    this.error = false;
     
     try {
-      // Simular carga de datos
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Primero obtener info del paciente
+      this.pacientesService.getPacienteById(this.idPacienteActual).subscribe({
+        next: (paciente) => {
+          this.usuario.nombre = paciente.nombrePaciente;
+        },
+        error: (err) => {
+          console.warn('No se pudo obtener nombre del paciente:', err);
+        }
+      });
+
+      // Luego cargar estadísticas del dashboard
+      this.dashboardService.obtenerEstadisticasPaciente(this.idPacienteActual).subscribe({
+        next: (stats) => {
+          this.estadisticas = stats;
+          this.metricas = stats.metricas;
+          this.cargando = false;
+        },
+        error: (err) => {
+          console.error('Error cargando estadísticas del paciente:', err);
+          this.error = true;
+          this.cargando = false;
+        }
+      });
       
     } catch (error) {
       console.error('Error cargando datos:', error);
-    } finally {
+      this.error = true;
       this.cargando = false;
     }
   }
 
   handleRefresh(event: any) {
+    this.cargarDatos();
     setTimeout(() => {
-      this.cargarDatos();
       event.target.complete();
     }, 1000);
   }
 
   navegar(ruta: string) {
-    console.log('Navegando a:', ruta);
-    this.router.navigateByUrl(ruta);
+    this.router.navigate([ruta]);
   }
 
-  getIconoTipo(tipo: string): string {
-    const icons: any = {
-      'consulta': 'calendar',
-      'examen': 'flask',
-      'reunion': 'people',
-      'recordatorio': 'alert-circle'
-    };
-    return icons[tipo] || 'medical';
+  getUltimasConsultas() {
+    if (!this.estadisticas) return [];
+    return this.estadisticas.ultimasConsultas.slice(0, 3);
   }
 
-  getColorTipo(tipo: string): string {
-    const colors: any = {
-      'consulta': 'primary',
-      'examen': 'warning',
-      'reunion': 'success',
-      'recordatorio': 'danger'
-    };
-    return colors[tipo] || 'medium';
+  getDiagnosticosRecientes() {
+    if (!this.estadisticas) return [];
+    return this.estadisticas.diagnosticosRecientes;
+  }
+
+  getExamenesPendientes() {
+    if (!this.estadisticas) return [];
+    return this.estadisticas.examenesPendientes;
+  }
+
+  getMedicamentosCronicos() {
+    if (!this.estadisticas) return [];
+    return this.estadisticas.medicamentosCronicos;
+  }
+
+  formatearFecha(fecha: string): string {
+    const date = new Date(fecha);
+    const hoy = new Date();
+    const ayer = new Date(hoy);
+    ayer.setDate(ayer.getDate() - 1);
+
+    if (date.toDateString() === hoy.toDateString()) {
+      return 'Hoy';
+    } else if (date.toDateString() === ayer.toDateString()) {
+      return 'Ayer';
+    } else {
+      return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+    }
+  }
+
+  formatearHora(hora: string): string {
+    if (!hora) return '';
+    return hora.substring(0, 5); // HH:MM
+  }
+
+  getConsultasPorcentaje(): number {
+    if (this.metricas.totalConsultas === 0) return 0;
+    return Math.min((this.metricas.consultasUltimos30Dias / this.metricas.totalConsultas) * 100, 100);
   }
 }

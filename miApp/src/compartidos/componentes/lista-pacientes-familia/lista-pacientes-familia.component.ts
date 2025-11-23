@@ -44,28 +44,29 @@ export class ListaPacientesFamiliaComponent {
     this.agregarPaciente.emit();
   }
 
-  calcularEdad(fechaNacimiento: string): number {
-    const hoy = new Date();
+  calcularEdad(fechaNacimiento?: string | null): number | null {
+    if (!fechaNacimiento) return null;
     const nacimiento = new Date(fechaNacimiento);
+    if (isNaN(nacimiento.getTime())) return null;
+    const hoy = new Date();
     let edad = hoy.getFullYear() - nacimiento.getFullYear();
     const mes = hoy.getMonth() - nacimiento.getMonth();
-    
     if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
       edad--;
     }
-    
     return edad;
   }
 
-  getPrevisionColor(prevision: string): string {
+  getPrevisionColor(prevision?: string | null): string {
+    if (!prevision || typeof prevision !== 'string') return 'medium';
     const colores: { [key: string]: string } = {
       'fonasa': 'primary',
       'isapre': 'secondary',
       'particular': 'tertiary',
       'otro': 'medium'
     };
-    
-    return colores[prevision.toLowerCase()] || 'medium';
+    const key = prevision.trim().toLowerCase();
+    return colores[key] || 'medium';
   }
 
   getAvatar(paciente: any): string {

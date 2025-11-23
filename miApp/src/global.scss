@@ -1,3 +1,18 @@
+/* Ionic core CSS (requerido) */
+@import "@ionic/angular/css/core.css";
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Utilidades opcionales */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+
 /* Variables de color - Paleta profesional */
 :root {
   --fondo-blanco: #FFFFFF;
@@ -30,34 +45,60 @@
   --sombra-fuerte: 0 8px 24px rgba(99, 102, 241, 0.16);
 }
 
-/* Ionic color overrides */
+/* RESET CRÍTICO PARA SCROLL Y NAVEGACIÓN */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+ion-app {
+  background: var(--fondo-app); /* Asegurar fondo consistente */
+}
+
+/* Ionic content fixes - CRÍTICO */
 ion-content {
   --background: var(--fondo-app);
+  --padding-bottom: 80px; /* Espacio para el menú inferior */
 }
 
-ion-toolbar {
-  --background: var(--lila-primario);
-  --color: white;
-  --border-width: 0;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  --min-height: 60px;
+/* Garantizar alto completo del contenedor y páginas */
+ion-app,
+ion-router-outlet,
+ion-page,
+.ion-page {
+  height: 100%;
+  min-height: 100%;
 }
 
-ion-title {
-  font-weight: 600;
-  font-size: 1.125rem;
+ion-router-outlet {
+  display: block; /* Evita colapsos de altura en algunas transiciones */
 }
 
-ion-button {
-  --border-radius: 10px;
-  font-weight: 500;
+/* Header fixes */
+ion-header {
+  &.ion-no-border {
+    border: none !important;
+  }
+  
+  ion-toolbar {
+    --background: var(--lila-primario);
+    --color: white;
+    --border-width: 0;
+    --min-height: 60px;
+    
+    /* Asegurar que el header esté siempre encima */
+    position: relative;
+    z-index: 1000;
+  }
 }
 
-/* Content Container */
+/* Content Container MEJORADO */
 .content-container {
   max-width: 100%;
-  padding: 0 16px 90px 16px;
+  padding: 0 16px 100px 16px; /* Aumentado padding inferior */
+  min-height: calc(100vh - 140px); /* Altura mínima para evitar cortes */
+  box-sizing: border-box;
   
   @media (min-width: 768px) {
     max-width: 800px;
@@ -69,7 +110,7 @@ ion-button {
   }
 }
 
-/* Hero Section */
+/* Hero Section MEJORADA */
 .hero-section {
   text-align: center;
   padding: 32px 16px 28px;
@@ -78,6 +119,8 @@ ion-button {
   margin: -8px -16px 24px;
   color: white;
   box-shadow: var(--sombra-media);
+  position: relative;
+  z-index: 1;
   
   .hero-icon {
     width: 70px;
@@ -308,7 +351,7 @@ ion-button {
   }
 }
 
-/* Bottom Navigation */
+/* Bottom Navigation FIXED */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -320,7 +363,7 @@ ion-button {
   --padding-top: 8px;
   --padding-bottom: 8px;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
-  z-index: 10;
+  z-index: 1000; /* Alto z-index para estar siempre encima */
   border-top: 1px solid #E2E8F0;
   
   .nav-buttons {
@@ -382,123 +425,123 @@ ion-button {
   }
 }
 
-/* Estilos para gestión de pacientes */
-.pacientes-grid {
-  display: grid;
-  gap: 12px;
-  padding: 0;
-}
+/* FIXES ESPECÍFICOS PARA PÁGINAS */
 
-.paciente-card {
-  background: var(--fondo-blanco);
-  border-radius: 16px;
-  padding: 16px;
-  margin: 0;
-  box-shadow: var(--sombra-suave);
-  border: 1px solid rgba(99, 102, 241, 0.08);
-  transition: all 0.3s ease;
+/* Gestión de pacientes específico */
+.gestion-content {
+  --padding-top: 0px !important;
+  --padding-bottom: 80px !important;
   
-  &:active {
-    transform: translateY(2px);
-    box-shadow: var(--sombra-suave);
+  .content-container {
+    padding-top: 0;
+  }
+  
+  .hero-section {
+    margin-top: -8px;
   }
 }
 
-.paciente-header {
+/* Ver Ficha específico */
+.ficha-container {
+  padding-bottom: 100px; /* Espacio extra para evitar que el contenido quede detrás del nav */
+}
+
+/* Loading states */
+.loading-container {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.paciente-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  border: 2px solid var(--lila-borde);
-  object-fit: cover;
-}
-
-.paciente-info {
-  flex: 1;
+  height: 50vh;
+  flex-direction: column;
+  gap: 16px;
+  
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    --color: var(--lila-primario);
+  }
   
   h3 {
-    margin: 0 0 4px 0;
-    font-size: 1rem;
-    font-weight: 600;
+    margin: 0;
     color: var(--texto-oscuro);
+    font-weight: 600;
   }
   
-  .paciente-meta {
-    display: flex;
-    gap: 8px;
-    font-size: 0.8rem;
+  p {
+    margin: 0;
     color: var(--texto-medio);
-    font-weight: 400;
   }
 }
 
-.paciente-badges {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-  
-  ion-badge {
-    font-size: 0.7rem;
-    padding: 4px 8px;
-    font-weight: 500;
-    border-radius: 6px;
-  }
-}
-
-.busqueda-container {
-  background: var(--fondo-blanco);
-  padding: 16px;
-  margin: -8px -16px 16px;
-  border-radius: 0 0 16px 16px;
-  box-shadow: var(--sombra-suave);
-  
-  ion-searchbar {
-    --background: var(--fondo-app);
-    --border-radius: 12px;
-    --box-shadow: none;
-    padding: 0;
-  }
-}
-
-.stats-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.stat-card {
-  background: var(--lila-suave);
-  border-radius: 12px;
-  padding: 12px;
+/* Error states */
+.error-container {
+  padding: 40px 20px;
   text-align: center;
-  border: 1px solid var(--lila-borde);
   
-  .stat-value {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--lila-primario);
-  }
-  
-  .stat-label {
-    font-size: 0.7rem;
-    color: var(--texto-medio);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin-top: 2px;
+  ion-card {
+    max-width: 400px;
+    margin: 0 auto;
   }
 }
 
-/* Animaciones */
+/* Safe area para dispositivos con notch */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    --min-height: calc(65px + env(safe-area-inset-bottom));
+  }
+  
+  .content-container {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+  
+  ion-content {
+    --padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Responsive para tablets */
+@media (min-width: 768px) {
+  .content-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .actions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .bottom-nav {
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px 20px 0 0;
+    margin-bottom: 0;
+  }
+}
+
+/* SCROLL FIXES CRÍTICOS */
+ion-content {
+  &.content-ltr {
+    --offset-top: 0px !important;
+    --offset-bottom: 0px !important;
+  }
+}
+
+/* Prevenir overflow horizontal */
+ion-grid, .content-container, .ficha-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Asegurar que las páginas tengan altura completa */
+.ion-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animaciones mejoradas */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -519,32 +562,99 @@ ion-button {
   &:nth-child(4) { animation-delay: 0.2s; }
 }
 
-/* Safe area para dispositivos con notch */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .bottom-nav {
-    padding-bottom: calc(8px + env(safe-area-inset-bottom));
-    --min-height: calc(65px + env(safe-area-inset-bottom));
-  }
-  
-  .content-container {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+/* FIX para ion-content que no muestra todo el contenido */
+ion-content {
+  .inner-scroll {
+    scroll-padding-bottom: 80px; /* Espacio para el bottom nav */
   }
 }
 
-/* Responsive para tablets */
-@media (min-width: 768px) {
-  .content-container {
-    max-width: 600px;
-    margin: 0 auto;
+/* Asegurar que el scroll funcione correctamente */
+.scroll-y {
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* FIX DEFINITIVO PARA ERROR ARIA-HIDDEN Y NAVEGACIÓN */
+.ion-page-hidden {
+  pointer-events: none !important;
+  
+  // Remover foco de todos los elementos en páginas ocultas
+  * {
+    outline: none !important;
   }
   
-  .actions-grid {
-    grid-template-columns: repeat(3, 1fr);
+  // Asegurar que los botones pierdan el foco
+  button, 
+  ion-button, 
+  [button], 
+  .button-native,
+  .item-native {
+    --background-focused: transparent !important;
+    --background-activated: transparent !important;
+    --background-hover: transparent !important;
+    
+    &:focus,
+    &:active,
+    &.activated {
+      --background: transparent !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+  }
+}
+
+/* Prevenir que los botones mantengan el foco durante transiciones */
+ion-button, 
+[button] {
+  --transition: all 0.2s ease;
+  
+  &:active {
+    transform: scale(0.98);
   }
   
-  .bottom-nav {
-    max-width: 600px;
-    left: 50%;
-    transform: translateX(-50%);
+  // Remover estados de foco problemáticos
+  &.button-disabled {
+    pointer-events: none;
+  }
+}
+
+/* Fix específico para cards con botones */
+.action-card {
+  // Prevenir que las cards mantengan estados activos
+  &:active {
+    transition: transform 0.1s ease;
+  }
+  
+  // Remover outline en foco
+  &:focus {
+    outline: none;
+    box-shadow: var(--sombra-suave);
+  }
+}
+
+/* Asegurar que el router outlet funcione correctamente */
+ion-router-outlet {
+  .ion-page {
+    // Asegurar que las páginas tengan el stacking context correcto
+    z-index: 0;
+    
+    &.ion-page-hidden {
+      z-index: -1;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
+}
+
+/* Fix para navegación - Forzar liberación de foco */
+.focus-reset {
+  // Clase utilitaria para resetear foco
+  * {
+    outline: none !important;
+    
+    &:focus {
+      outline: none !important;
+      box-shadow: none !important;
+    }
   }
 }
