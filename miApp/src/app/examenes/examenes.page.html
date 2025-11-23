@@ -1,0 +1,124 @@
+<ion-header [translucent]="false">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Exámenes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="examenes-content">
+  <ion-refresher slot="fixed" (ionRefresh)="recargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="content-container">
+    <!-- Opciones para crear/cargar examen -->
+    <div class="options-section">
+      <h2>¿Cómo quieres registrar un examen?</h2>
+
+      <ion-card class="option-card" routerLink="/examenes/crear" button>
+        <div class="card-icon">
+          <ion-icon name="add-circle"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Ingresar manualmente</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          Completa un formulario con los datos del examen.
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="option-card" routerLink="/examenes/cargar" button>
+        <div class="card-icon">
+          <ion-icon name="image"></ion-icon>
+        </div>
+        <ion-card-header>
+          <ion-card-title>Cargar archivo o foto</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          Sube una imagen o PDF del resultado.
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Listado de exámenes -->
+    <div class="list-section" *ngIf="!cargando">
+      <h2>Tus exámenes</h2>
+
+      @if (error) {
+        <ion-card color="light">
+          <ion-card-content class="error-message">
+            <ion-icon name="alert-circle"></ion-icon>
+            {{ error }}
+          </ion-card-content>
+        </ion-card>
+      }
+
+      @if (examenes.length === 0 && !error) {
+        <ion-card class="empty-state">
+          <ion-card-content>
+            <ion-icon name="document"></ion-icon>
+            <p>No hay exámenes registrados</p>
+            <small>Comienza creando o cargando un nuevo examen</small>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      @for (examen of examenes; track examen.idExamen) {
+        <ion-card class="examen-card">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="flask"></ion-icon>
+              {{ examen.tipoExamen }}
+              <ion-badge [color]="examen.estado === 'completado' ? 'success' : 'warning'">
+                {{ examen.estado }}
+              </ion-badge>
+            </ion-card-title>
+            <ion-card-subtitle>
+              <ion-icon name="calendar"></ion-icon>
+              {{ examen.fechaExamen | date:'dd/MM/yyyy' }}
+            </ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="fila" *ngIf="examen.laboratorio">
+              <ion-icon name="business"></ion-icon>
+              <span>{{ examen.laboratorio }}</span>
+            </div>
+            <div class="fila" *ngIf="examen.notas">
+              <ion-icon name="document-text"></ion-icon>
+              <span>{{ examen.notas }}</span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+
+    @if (cargando) {
+      <div class="loading-state">
+        <ion-spinner></ion-spinner>
+        <p>Cargando exámenes...</p>
+      </div>
+    }
+  </div>
+</ion-content>
+
+<ion-toolbar class="bottom-nav">
+  <div class="nav-buttons">
+    <ion-button class="nav-button" routerLink="/dashboard">
+      <ion-icon name="home" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/home">
+      <ion-icon name="document" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/fichas/crear-paciente">
+      <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button active" routerLink="/examenes">
+      <ion-icon name="flask" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/gestion-pacientes">
+      <ion-icon name="settings" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</ion-toolbar>

@@ -1,0 +1,198 @@
+<ion-header [translucent]="false">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/examenes"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Cargar Examen</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="cargar-examen-content">
+  <div class="content-container">
+
+    <!-- ETAPA 1: SELECCIÓN DE ARCHIVO Y CONSULTA -->
+    <div *ngIf="etapa === 'seleccion'">
+      <ion-card class="form-card">
+        <ion-card-header>
+          <ion-card-title>Seleccionar consulta</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item>
+              <ion-select 
+                label="Asociar a consulta" 
+                labelPlacement="floating" 
+                [(ngModel)]="idConsultaSeleccionada"
+                [disabled]="cargandoConsultas">
+                <ion-select-option [value]="null">(Sin asociar)</ion-select-option>
+                <ion-select-option *ngFor="let c of consultas" [value]="c.idConsulta">
+                  {{ c.fechaIngreso | date:'dd/MM/yyyy' }} · {{ c.motivo || 'Consulta general' }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="form-card">
+        <ion-card-header>
+          <ion-card-title>Cargar archivo</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p class="help-text">
+            <ion-icon name="information-circle"></ion-icon>
+            Sube imágenes (JPG, PNG) o PDF del resultado del examen (máx 10MB)
+          </p>
+
+          <div class="file-input-wrapper">
+            <input 
+              type="file" 
+              #fileInput 
+              (change)="seleccionarArchivo($event)" 
+              accept=".pdf,.jpg,.jpeg,.png"
+              style="display: none">
+            <ion-button expand="block" (click)="fileInput.click()" class="file-button">
+              <ion-icon name="cloud-upload" slot="start"></ion-icon>
+              Seleccionar archivo
+            </ion-button>
+          </div>
+
+          <div *ngIf="archivoSeleccionado" class="archivo-info">
+            <ion-card class="file-card">
+              <ion-card-content>
+                <div class="file-details">
+                  <ion-icon name="document"></ion-icon>
+                  <div class="file-meta">
+                    <p class="file-name">{{ archivoSeleccionado.name }}</p>
+                    <small class="file-size">{{ formatoTamano(archivoSeleccionado.size) }}</small>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="tipoMensaje === 'error'" class="error-card">
+            <ion-icon name="alert-circle"></ion-icon>
+            <p>{{ mensaje }}</p>
+          </div>
+
+          <!-- Action Button -->
+          <ion-button 
+            expand="block" 
+            type="button"
+            class="preview-button"
+            (click)="mostrarResumen()" 
+            [disabled]="!archivoSeleccionado || !idConsultaSeleccionada">
+            <ion-icon name="eye" slot="start"></ion-icon>
+            Ver resumen antes de guardar
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- ETAPA 2: RESUMEN/PREVIEW -->
+    <div *ngIf="etapa === 'resumen'">
+      <ion-card class="resumen-card">
+        <ion-card-header>
+          <ion-card-title>Resumen del examen a guardar</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="resumen-section">
+            <h3>Archivo</h3>
+            <div class="resumen-item">
+              <ion-icon name="document"></ion-icon>
+              <div>
+                <p class="label">Nombre</p>
+                <p class="value">{{ archivoSeleccionado?.name }}</p>
+              </div>
+            </div>
+            <div class="resumen-item">
+              <ion-icon name="settings"></ion-icon>
+              <div>
+                <p class="label">Tamaño</p>
+                <p class="value">{{ formatoTamano(archivoSeleccionado?.size || 0) }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="resumen-section">
+            <h3>Asociación a consulta</h3>
+            <div class="resumen-item">
+              <ion-icon name="calendar"></ion-icon>
+              <div>
+                <p class="label">Fecha</p>
+                <p class="value">{{ consultaSeleccionadaInfo?.fechaIngreso | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </div>
+            <div class="resumen-item">
+              <ion-icon name="medical"></ion-icon>
+              <div>
+                <p class="label">Motivo</p>
+                <p class="value">{{ consultaSeleccionadaInfo?.motivo || 'Consulta general' }}</p>
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          (click)="regresarSeleccion()">
+          <ion-icon name="arrow-back" slot="start"></ion-icon>
+          Volver
+        </ion-button>
+        <ion-button 
+          expand="block" 
+          class="save-button"
+          (click)="subirArchivo()"
+          [disabled]="subiendo">
+          <ion-spinner *ngIf="subiendo" name="crescent"></ion-spinner>
+          {{ subiendo ? 'Guardando...' : 'Confirmar y guardar' }}
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- ETAPA 3: COMPLETADO -->
+    <div *ngIf="etapa === 'completado'" class="completado-section">
+      <ion-card class="success-card">
+        <ion-card-content>
+          <ion-icon name="checkmark-circle"></ion-icon>
+          <h2>¡Examen cargado!</h2>
+          <p>El archivo se ha guardado correctamente</p>
+          <small>{{ archivoSeleccionado?.name }}</small>
+        </ion-card-content>
+      </ion-card>
+      <ion-button expand="block" routerLink="/examenes" fill="clear">
+        <ion-icon name="arrow-forward" slot="start"></ion-icon>
+        Ver mis exámenes
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>
+
+<ion-toolbar class="bottom-nav">
+  <div class="nav-buttons">
+    <ion-button class="nav-button" routerLink="/dashboard">
+      <ion-icon name="home" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/home">
+      <ion-icon name="document" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/fichas/crear-paciente">
+      <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button active" routerLink="/examenes">
+      <ion-icon name="flask" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/gestion-pacientes">
+      <ion-icon name="settings" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</ion-toolbar>

@@ -1,0 +1,135 @@
+<ion-header [translucent]="false">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/examenes"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Crear Examen</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="crear-examen-content">
+  <div class="content-container">
+    <!-- Success Message -->
+    <div *ngIf="tipoMensaje === 'success'" class="success-card">
+      <ion-icon name="checkmark-circle"></ion-icon>
+      <p>{{ mensaje }}</p>
+      <ion-button fill="clear" color="success" size="small" routerLink="/examenes">
+        Ir a exámenes
+      </ion-button>
+    </div>
+
+    <!-- Form -->
+    <form *ngIf="tipoMensaje !== 'success'" (ngSubmit)="guardar()">
+      <ion-card class="form-card">
+        <ion-card-header>
+          <ion-card-title>Datos del examen</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item>
+              <ion-input 
+                label="Nombre del examen" 
+                labelPlacement="floating" 
+                [(ngModel)]="examen.nombreExamen"
+                name="nombreExamen"
+                required>
+              </ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input 
+                label="Tipo de examen" 
+                labelPlacement="floating" 
+                [(ngModel)]="examen.tipoExamen"
+                name="tipoExamen"
+                required>
+              </ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input 
+                label="Unidad de medida" 
+                labelPlacement="floating" 
+                [(ngModel)]="examen.unidadMedida"
+                name="unidadMedida">
+              </ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input 
+                label="Valor de referencia" 
+                labelPlacement="floating" 
+                [(ngModel)]="examen.valorReferencia"
+                name="valorReferencia">
+              </ion-input>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="form-card">
+        <ion-card-header>
+          <ion-card-title>Detalles adicionales</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item>
+              <ion-select 
+                label="Asociar a consulta" 
+                labelPlacement="floating" 
+                [(ngModel)]="examen.idConsulta"
+                name="idConsulta">
+                <ion-select-option [value]="undefined">(Sin asociar)</ion-select-option>
+                <ion-select-option *ngFor="let c of consultas" [value]="c.idConsulta">
+                  {{ c.fechaIngreso | date:'dd/MM/yyyy' }} · {{ c.motivo || 'Consulta general' }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+            <ion-item>
+              <ion-textarea 
+                label="Observación" 
+                labelPlacement="floating" 
+                autoGrow="true" 
+                [(ngModel)]="examen.observacion"
+                name="observacion">
+              </ion-textarea>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Error Message -->
+      <div *ngIf="tipoMensaje === 'error'" class="error-card">
+        <ion-icon name="alert-circle"></ion-icon>
+        <p>{{ mensaje }}</p>
+      </div>
+
+      <!-- Action Button -->
+      <ion-button 
+        expand="block" 
+        type="submit"
+        class="submit-button"
+        [disabled]="guardando || cargandoConsultas">
+        <ion-spinner *ngIf="guardando" name="crescent"></ion-spinner>
+        {{ guardando ? 'Guardando...' : 'Guardar Examen' }}
+      </ion-button>
+    </form>
+  </div>
+</ion-content>
+
+<ion-toolbar class="bottom-nav">
+  <div class="nav-buttons">
+    <ion-button class="nav-button" routerLink="/dashboard">
+      <ion-icon name="home" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/home">
+      <ion-icon name="document" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/fichas/crear-paciente">
+      <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button active" routerLink="/examenes">
+      <ion-icon name="flask" slot="icon-only"></ion-icon>
+    </ion-button>
+    <ion-button class="nav-button" routerLink="/gestion-pacientes">
+      <ion-icon name="settings" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</ion-toolbar>
