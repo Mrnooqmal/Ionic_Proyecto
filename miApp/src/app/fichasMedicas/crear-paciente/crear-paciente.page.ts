@@ -75,20 +75,31 @@ export class CrearPaciente {
 
   private obtenerOCrearFamiliaUnica(): Promise<number> {
     return new Promise((resolve, reject) => {
+      console.log('Obteniendo familias del paciente:', this.pacienteActualId);
       this.familiaService.getFamiliasPorPaciente(this.pacienteActualId).subscribe({
         next: (familias) => {
+          console.log('Familias obtenidas:', familias);
+          console.log('Número de familias:', familias ? familias.length : 0);
+          
           if (familias && familias.length > 0) {
-            // USAR LA PRIMERA FAMILIA EXISTENTE
-            const familiaId = familias[0].idFamilia;
-            console.log('Usando familia existente del paciente:', familiaId);
-            resolve(familiaId);
+            const familiaPropia = familias.find((f: any) => f.idOwner === this.pacienteActualId);
+            
+            if (familiaPropia) {
+              console.log('Usando familia propia del paciente, ID:', familiaPropia.idFamilia);
+              resolve(familiaPropia.idFamilia);
+            } else {
+              const familiaId = familias[0].idFamilia;
+              console.log('No hay familia propia, usando primera familia disponible, ID:', familiaId);
+              resolve(familiaId);
+            }
           } else {
-            console.log('Creando NUEVA familia única para paciente:', this.pacienteActualId);
+            console.log('No hay familias, creando nueva...');
             this.crearFamiliaUnica().then(resolve).catch(reject);
           }
         },
         error: (err) => {
           console.error('Error al obtener familias:', err);
+          console.log('Creando nueva familia por error...');
           this.crearFamiliaUnica().then(resolve).catch(reject);
         }
       });
@@ -98,6 +109,7 @@ export class CrearPaciente {
   private crearFamiliaUnica(): Promise<number> {
     return new Promise((resolve, reject) => {
       const nombreFamilia = `Familia de ${this.pacienteActualNombre}`;
+      console.log('Creando familia:', nombreFamilia);
       
       this.familiaService.crearFamilia({
         nombre: nombreFamilia,
@@ -105,26 +117,26 @@ export class CrearPaciente {
         idOwner: this.pacienteActualId
       }).subscribe({
         next: (nuevaFamilia) => {
-          console.log('Nueva familia única creada:', nuevaFamilia.idFamilia);
+          console.log('Familia creada, ID:', nuevaFamilia.idFamilia);
           
           this.familiaService.agregarMiembro(
             nuevaFamilia.idFamilia,
             this.pacienteActualId,
-            'administrador', // Rol como administrador
+            'administrador',
             this.pacienteActualId
           ).subscribe({
             next: () => {
-              console.log('Paciente actual agregado a su propia familia');
+              console.log('Paciente actual agregado a su familia');
               resolve(nuevaFamilia.idFamilia);
             },
             error: (err) => {
-              console.warn('Paciente actual ya estaba en la familia, continuando...', err);
+              console.warn('Paciente actual ya estaba en familia:', err);
               resolve(nuevaFamilia.idFamilia); 
             }
           });
         },
         error: (err) => {
-          console.error('Error al crear familia:', err);
+          console.error('Error creando familia:', err);
           reject(err);
         }
       });
@@ -134,7 +146,7 @@ export class CrearPaciente {
   private agregarMiembroAFamilia(familiaId: number, paciente: Paciente) {
     const rol = (paciente as any).rolFamiliar || 'familiar';
 
-    console.log('    DEBUG - Agregando miembro:');
+    console.log('DEBUG - Agregando miembro:');
     console.log('  - Familia ID:', familiaId);
     console.log('  - Paciente ID:', paciente.idPaciente);
     console.log('  - Rol:', rol);
@@ -150,22 +162,31 @@ export class CrearPaciente {
         console.log('DEBUG - Respuesta del servidor:', response);
         console.log('Paciente agregado al grupo familiar:', response);
         this.mostrarMensaje(`Paciente creado y agregado como ${rol}`, 'success');
-        this._redirigirDespuesDeCrear();
+        
+        setTimeout(() => {
+          this._redirigirDespuesDeCrear();
+        }, 800);
       },
       error: (err) => {
         console.error('DEBUG - Error al agregar miembro:', err);
         console.error('Error al agregar miembro a familia:', err);
         const mensajeError = err?.error?.message || 'Error al vincular al grupo familiar';
         this.mostrarMensaje(`Paciente creado, pero ${mensajeError.toLowerCase()}`, 'error');
-        this._redirigirDespuesDeCrear(); 
+        
+        setTimeout(() => {
+          this._redirigirDespuesDeCrear();
+        }, 1500);
       }
     });
   }
 
   private _redirigirDespuesDeCrear() {
     setTimeout(() => {
-      this.router.navigate(['/fichas/buscarFichas']);
-    }, 2000);
+      console.log('Redirigiendo a gestión de pacientes...');
+      this.router.navigate(['/gestion-pacientes'], {
+        replaceUrl: false
+      });
+    }, 1500);
   }
 
   onFormularioCancelado() {

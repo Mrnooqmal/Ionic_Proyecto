@@ -149,60 +149,87 @@ app.post('/api/pacientes', (req, res) => {
       error: 'Sexo debe ser: masculino, femenino u otro' 
     });
   }
- 
-  const query = `
-    INSERT INTO Paciente
-    (nombrePaciente, fotoPerfil, fechaNacimiento, correo, telefono, direccion, sexo, nacionalidad, ocupacion, prevision, tipoSangre)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
- 
-  db.query(query, [
-    nombrePaciente,
-    fotoPerfil || null,
-    fechaNacimiento,
-    correo || null,
-    telefono || null,
-    direccion || null,
-    sexo.toLowerCase(),
-    nacionalidad || null,
-    ocupacion || null,
-    prevision || null,
-    tipoSangre || null
-  ], (err, results) => {
-      if (err) {
-        console.error('Error en POST /api/pacientes:', err.message);
+
+  if (correo) {
+    const checkEmailQuery = 'SELECT idPaciente FROM Paciente WHERE correo = ?';
+    db.query(checkEmailQuery, [correo], (emailErr, emailResults) => {
+      if (emailErr) {
+        console.error('Error verificando email:', emailErr.message);
         return res.status(500).json({ 
-          error: 'Error creando paciente', 
-          details: err.message 
+          error: 'Error verificando correo', 
+          details: emailErr.message 
         });
       }
-     
-      const nuevoPaciente = {
-        idPaciente: results.insertId,
-        nombrePaciente,
-        fotoPerfil: fotoPerfil || null,
-        fechaNacimiento,
-        correo: correo || null,
-        telefono: telefono || null,
-        direccion: direccion || null,
-        sexo: sexo.toLowerCase(),
-        nacionalidad: nacionalidad || null,
-        ocupacion: ocupacion || null,
-        prevision: prevision || null,
-        tipoSangre: tipoSangre || null
-      };
 
-      console.log(`POST /api/pacientes - Paciente creado con ID: ${results.insertId}`);
-      
-      res.status(201).json({
-        ...nuevoPaciente,
-        message: 'Paciente creado exitosamente'
-      });
+      if (emailResults && emailResults.length > 0) {
+        console.log(`Email ${correo} ya existe en la base de datos`);
+        return res.status(400).json({ 
+          error: 'El correo electrónico ya está registrado',
+          message: 'El correo electrónico ya está registrado',
+          code: 'DUPLICATE_EMAIL'
+        });
+      }
 
-      // Notificar via SSE
-      notificarClientes('paciente_creado', nuevoPaciente);
-    }
-  );
+      insertarPaciente();
+    });
+  } else {
+    insertarPaciente();
+  }
+
+  function insertarPaciente() {
+    const query = `
+      INSERT INTO Paciente
+      (nombrePaciente, fotoPerfil, fechaNacimiento, correo, telefono, direccion, sexo, nacionalidad, ocupacion, prevision, tipoSangre)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+   
+    db.query(query, [
+      nombrePaciente,
+      fotoPerfil || null,
+      fechaNacimiento,
+      correo || null,
+      telefono || null,
+      direccion || null,
+      sexo.toLowerCase(),
+      nacionalidad || null,
+      ocupacion || null,
+      prevision || null,
+      tipoSangre || null
+    ], (err, results) => {
+        if (err) {
+          console.error('Error en POST /api/pacientes:', err.message);
+          return res.status(500).json({ 
+            error: 'Error creando paciente', 
+            details: err.message 
+          });
+        }
+       
+        const nuevoPaciente = {
+          idPaciente: results.insertId,
+          nombrePaciente,
+          fotoPerfil: fotoPerfil || null,
+          fechaNacimiento,
+          correo: correo || null,
+          telefono: telefono || null,
+          direccion: direccion || null,
+          sexo: sexo.toLowerCase(),
+          nacionalidad: nacionalidad || null,
+          ocupacion: ocupacion || null,
+          prevision: prevision || null,
+          tipoSangre: tipoSangre || null
+        };
+
+        console.log(`POST /api/pacientes - Paciente creado con ID: ${results.insertId}`);
+        
+        res.status(201).json({
+          data: nuevoPaciente,
+          message: 'Paciente creado exitosamente'
+        });
+
+        notificarClientes('paciente_creado', nuevoPaciente);
+      }
+    );
+  }
 });
 
 // PUT /api/pacientes/:id - Actualizar paciente
@@ -436,7 +463,7 @@ app.get('/api/familias/:idPaciente', (req, res) => {
       f.updated_at,
       fp.idPaciente as miembro_idPaciente,
       fp.rol as miembro_rol,
-      fp.fechaAgregado as miembro_fechaAgregado,
+      COALESCE(fp.fechaAgregado, NOW()) as miembro_fechaAgregado,
       p.nombrePaciente,
       p.fotoPerfil,
       p.fechaNacimiento,
@@ -452,7 +479,7 @@ app.get('/api/familias/:idPaciente', (req, res) => {
     LEFT JOIN FamiliaPaciente fp ON f.idFamilia = fp.idFamilia
     LEFT JOIN Paciente p ON fp.idPaciente = p.idPaciente
     WHERE f.idOwner = ? OR fp.idPaciente = ?
-    ORDER BY f.idFamilia, fp.fechaAgregado
+    ORDER BY f.idFamilia, COALESCE(fp.fechaAgregado, NOW()) DESC
   `;
   
   db.query(query, [idPaciente, idPaciente], (err, results) => {
@@ -464,7 +491,6 @@ app.get('/api/familias/:idPaciente', (req, res) => {
       });
     }
     
-    // Agrupar por familia
     const familiasMap = new Map();
     
     results.forEach(row => {
@@ -481,7 +507,7 @@ app.get('/api/familias/:idPaciente', (req, res) => {
       }
       
       if (row.miembro_idPaciente) {
-        familiasMap.get(row.idFamilia).miembros.push({
+        const miembro = {
           idFamilia: row.idFamilia,
           idPaciente: row.miembro_idPaciente,
           rol: row.miembro_rol,
@@ -500,14 +526,109 @@ app.get('/api/familias/:idPaciente', (req, res) => {
             prevision: row.prevision,
             tipoSangre: row.tipoSangre
           }
-        });
+        };
+        console.log(`  Miembro encontrado: ${row.nombrePaciente} (ID: ${row.miembro_idPaciente}) en familia ${row.idFamilia}`);
+        familiasMap.get(row.idFamilia).miembros.push(miembro);
       }
     });
     
     const familias = Array.from(familiasMap.values());
     
     console.log(`GET /api/familias/${idPaciente} - ${familias.length} familias encontradas`);
+    familias.forEach(f => {
+      console.log(`  Familia ${f.idFamilia} (${f.nombre}): ${f.miembros.length} miembros`);
+    });
     res.json({ data: familias });
+  });
+});
+
+// GET /api/familias/:id - Obtener familia por ID (ENDPOINT NUEVO - SOLUCIÓN AL 404)
+app.get('/api/familias/:id', (req, res) => {
+  const { id } = req.params;
+  
+  console.log(`GET /api/familias/${id} - Buscando familia por ID`);
+  
+  const query = `
+    SELECT 
+      f.idFamilia, 
+      f.nombre, 
+      f.descripcion, 
+      f.idOwner, 
+      f.created_at, 
+      f.updated_at,
+      fp.idPaciente as miembro_idPaciente,
+      fp.rol as miembro_rol,
+      COALESCE(fp.fechaAgregado, NOW()) as miembro_fechaAgregado,
+      p.nombrePaciente,
+      p.fotoPerfil,
+      p.fechaNacimiento,
+      p.correo,
+      p.telefono,
+      p.direccion,
+      p.sexo,
+      p.nacionalidad,
+      p.ocupacion,
+      p.prevision,
+      p.tipoSangre
+    FROM Familia f
+    LEFT JOIN FamiliaPaciente fp ON f.idFamilia = fp.idFamilia
+    LEFT JOIN Paciente p ON fp.idPaciente = p.idPaciente
+    WHERE f.idFamilia = ?
+    ORDER BY COALESCE(fp.fechaAgregado, NOW()) DESC
+  `;
+  
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error(`Error en GET /api/familias/${id}:`, err.message);
+      return res.status(500).json({ 
+        error: 'Error obteniendo familia', 
+        details: err.message 
+      });
+    }
+    
+    if (results.length === 0) {
+      console.log(`GET /api/familias/${id} - Familia no encontrada`);
+      return res.status(404).json({ error: 'Familia no encontrada' });
+    }
+    
+    const familia = {
+      idFamilia: results[0].idFamilia,
+      nombre: results[0].nombre,
+      descripcion: results[0].descripcion,
+      idOwner: results[0].idOwner,
+      created_at: results[0].created_at,
+      updated_at: results[0].updated_at,
+      miembros: []
+    };
+    
+    results.forEach(row => {
+      if (row.miembro_idPaciente) {
+        const miembro = {
+          idFamilia: row.idFamilia,
+          idPaciente: row.miembro_idPaciente,
+          rol: row.miembro_rol,
+          fechaAgregado: row.miembro_fechaAgregado,
+          paciente: {
+            idPaciente: row.miembro_idPaciente,
+            nombrePaciente: row.nombrePaciente,
+            fotoPerfil: row.fotoPerfil,
+            fechaNacimiento: row.fechaNacimiento,
+            correo: row.correo,
+            telefono: row.telefono,
+            direccion: row.direccion,
+            sexo: row.sexo,
+            nacionalidad: row.nacionalidad,
+            ocupacion: row.ocupacion,
+            prevision: row.prevision,
+            tipoSangre: row.tipoSangre
+          }
+        };
+        familia.miembros.push(miembro);
+      }
+    });
+    
+    console.log(`GET /api/familias/${id} - Familia encontrada con ${familia.miembros.length} miembros`);
+    res.json({ data: familia });
   });
 });
 
@@ -555,7 +676,10 @@ app.post('/api/familias/:idFamilia/miembros', (req, res) => {
   const { idFamilia } = req.params;
   const { idPaciente, rol } = req.body;
   
-  console.log(`POST /api/familias/${idFamilia}/miembros - Agregando miembro:`, { idPaciente, rol });
+  console.log(`POST /api/familias/${idFamilia}/miembros - Agregando miembro:`);
+  console.log(`  idFamilia: ${idFamilia}`);
+  console.log(`  idPaciente: ${idPaciente}`);
+  console.log(`  rol: ${rol}`);
   
   if (!idPaciente || !rol) {
     return res.status(400).json({ 
@@ -563,7 +687,6 @@ app.post('/api/familias/:idFamilia/miembros', (req, res) => {
     });
   }
   
-  // Verificar que la familia existe
   const checkQuery = 'SELECT idFamilia FROM Familia WHERE idFamilia = ?';
   
   db.query(checkQuery, [idFamilia], (checkErr, checkResults) => {
@@ -580,7 +703,6 @@ app.post('/api/familias/:idFamilia/miembros', (req, res) => {
       return res.status(404).json({ error: 'Familia no encontrada' });
     }
     
-    // Insertar miembro (la tabla FamiliaPaciente tiene un campo id autoincremental)
     const insertQuery = `
       INSERT INTO FamiliaPaciente (idFamilia, idPaciente, rol)
       VALUES (?, ?, ?)
@@ -588,12 +710,11 @@ app.post('/api/familias/:idFamilia/miembros', (req, res) => {
     
     db.query(insertQuery, [idFamilia, idPaciente, rol], (insertErr) => {
       if (insertErr) {
-        // Si el miembro ya existe, no es un error crítico
         if (insertErr.code === 'ER_DUP_ENTRY') {
           console.log(`Miembro ${idPaciente} ya está en familia ${idFamilia}`);
           return res.status(200).json({ 
-            message: 'Miembro ya existe en la familia',
-            data: { idFamilia, idPaciente, rol }
+            data: { idFamilia, idPaciente, rol },
+            message: 'Miembro ya existe en la familia'
           });
         }
         
@@ -604,7 +725,7 @@ app.post('/api/familias/:idFamilia/miembros', (req, res) => {
         });
       }
       
-      console.log(`Miembro ${idPaciente} agregado a familia ${idFamilia}`);
+      console.log(`Miembro ${idPaciente} agregado exitosamente a familia ${idFamilia}`);
       res.status(201).json({ 
         data: { idFamilia, idPaciente, rol },
         message: 'Miembro agregado exitosamente'
@@ -637,6 +758,88 @@ app.delete('/api/familias/:idFamilia/miembros/:idPaciente', (req, res) => {
     
     console.log(`Miembro eliminado de familia`);
     res.json({ message: 'Miembro eliminado exitosamente' });
+  });
+});
+
+// PUT /api/familias/:idFamilia - Actualizar familia (nombre y descripción)
+app.put('/api/familias/:idFamilia', (req, res) => {
+  const { idFamilia } = req.params;
+  const { nombre, descripcion } = req.body;
+  
+  console.log(`PUT /api/familias/${idFamilia} - Actualizando familia:`, { nombre, descripcion });
+  
+  const query = 'UPDATE Familia SET nombre = ?, descripcion = ?, updated_at = NOW() WHERE idFamilia = ?';
+  
+  db.query(query, [nombre || null, descripcion || null, idFamilia], (err, results) => {
+    if (err) {
+      console.error(`Error actualizando familia:`, err.message);
+      return res.status(500).json({ 
+        error: 'Error actualizando familia', 
+        details: err.message 
+      });
+    }
+    
+    if (results.affectedRows === 0) {
+      console.log(`Familia no encontrada`);
+      return res.status(404).json({ error: 'Familia no encontrada' });
+    }
+    
+    // Obtener la familia actualizada
+    const selectQuery = `
+      SELECT idFamilia, nombre, descripcion, idOwner, created_at, updated_at
+      FROM Familia WHERE idFamilia = ?
+    `;
+    
+    db.query(selectQuery, [idFamilia], (err, familiaResults) => {
+      if (err) {
+        console.error(`Error obteniendo familia actualizada:`, err.message);
+        return res.status(500).json({ error: 'Error obteniendo familia actualizada' });
+      }
+      
+      console.log(`Familia actualizada exitosamente`);
+      res.json({ data: familiaResults[0] });
+    });
+  });
+});
+
+// DELETE /api/familias/:idFamilia - Eliminar una familia completamente
+app.delete('/api/familias/:idFamilia', (req, res) => {
+  const { idFamilia } = req.params;
+  
+  console.log(`DELETE /api/familias/${idFamilia} - Eliminando familia`);
+  
+  // Primero eliminar todos los miembros de la familia
+  const deleteMiembrosQuery = 'DELETE FROM FamiliaPaciente WHERE idFamilia = ?';
+  
+  db.query(deleteMiembrosQuery, [idFamilia], (err) => {
+    if (err) {
+      console.error(`Error eliminando miembros de familia:`, err.message);
+      return res.status(500).json({ 
+        error: 'Error eliminando miembros de familia', 
+        details: err.message 
+      });
+    }
+    
+    // Luego eliminar la familia
+    const deleteFamiliaQuery = 'DELETE FROM Familia WHERE idFamilia = ?';
+    
+    db.query(deleteFamiliaQuery, [idFamilia], (err, results) => {
+      if (err) {
+        console.error(`Error eliminando familia:`, err.message);
+        return res.status(500).json({ 
+          error: 'Error eliminando familia', 
+          details: err.message 
+        });
+      }
+      
+      if (results.affectedRows === 0) {
+        console.log(`Familia no encontrada`);
+        return res.status(404).json({ error: 'Familia no encontrada' });
+      }
+      
+      console.log(`Familia eliminada exitosamente`);
+      res.json({ message: 'Familia eliminada exitosamente' });
+    });
   });
 });
 
@@ -782,7 +985,6 @@ app.post('/api/patients/:id/exams', async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    // Validar paciente existe
     const [pac] = await conn.query('SELECT idPaciente FROM Paciente WHERE idPaciente = ?', [idPaciente]);
     if (pac.length === 0) {
       await conn.rollback();

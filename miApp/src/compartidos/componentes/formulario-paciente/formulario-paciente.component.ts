@@ -125,9 +125,11 @@ export class FormularioPacienteComponent implements OnInit {
         this.guardado.emit(nuevoPaciente);
         this.guardando = false;
       },
-      error: (error) => {
-        console.log('Error completo:', error);
-        console.log('Error body:', error.error);
+      error: (error: any) => {
+        console.log('Error en crearPaciente:', error);
+        console.log('Error status:', error?.status);
+        console.log('Error error.error:', error?.error?.error);
+        console.log('Error error.message:', error?.error?.message);
         const msg = this.procesarErrores(error);
         this.mostrarMensaje('Error al crear paciente: ' + msg, 'error');
         this.guardando = false;
@@ -143,21 +145,66 @@ export class FormularioPacienteComponent implements OnInit {
         this.guardado.emit(pacienteActualizado);
         this.guardando = false;
       },
-      error: (error) => {
-        console.log('Error completo al actualizar:', error);
-        console.log('Error body:', error.error);
+      error: (error: any) => {
+        console.log('Error en actualizarPaciente:', error);
+        console.log('Error status:', error?.status);
         const msg = this.procesarErrores(error);
         this.mostrarMensaje('Error al actualizar paciente: ' + msg, 'error');
-        console.error('Error detalle:', error);
         this.guardando = false;
       }
     });
   }
 
   private procesarErrores(error: any): string {
-    if (error?.error?.errors) {
-      const errores = error.error.errors;
+    console.log('procesarErrores - Error recibido:', error);
+    
+    let httpError = error;
+    if (error instanceof Error && error.message) {
+      try {
+        httpError = JSON.parse(error.message);
+      } catch {
+        httpError = error;
+      }
+    }
+    
+    console.log('procesarErrores - httpError:', httpError);
+    console.log('procesarErrores - httpError.status:', httpError?.status);
+    console.log('procesarErrores - httpError.error:', httpError?.error);
+
+    if (httpError?.status === 400 && httpError?.error?.error) {
+      if (httpError.error.error.includes('correo') || httpError.error.error.includes('email') ||
+          httpError.error.error.includes('duplicado') || httpError.error.error.includes('Duplicate')) {
+        return 'El correo electrónico ya está registrado. Usa uno diferente.';
+      }
+      return httpError.error.error;
+    }
+
+    if (httpError?.error?.code === 'DUPLICATE_EMAIL') {
+      return 'El correo electrónico ya está registrado. Usa uno diferente.';
+    }
+
+    if (httpError?.error?.message) {
+      const msg = httpError.error.message;
+      if (msg.includes('correo') || msg.includes('email') || 
+          msg.includes('duplicado') || msg.includes('Duplicate')) {
+        return 'El correo electrónico ya está registrado. Usa uno diferente.';
+      }
+      return msg;
+    }
+
+    if (httpError?.error?.errors) {
+      const errores = httpError.error.errors;
       console.log('Errores de validación:', errores);
+      
+      if (errores.correo) {
+        const correoError = Array.isArray(errores.correo) ? errores.correo.join(', ') : String(errores.correo);
+        if (correoError.toLowerCase().includes('unique') || 
+            correoError.toLowerCase().includes('duplicate') ||
+            correoError.toLowerCase().includes('existe')) {
+          return 'El correo electrónico ya está registrado. Usa uno diferente.';
+        }
+        return correoError;
+      }
       
       return Object.entries(errores)
         .map(([campo, mensajes]) => {
@@ -166,7 +213,8 @@ export class FormularioPacienteComponent implements OnInit {
         })
         .join(' | ');
     }
-    return error?.message || 'Error desconocido';
+    
+    return httpError?.message || error?.message || 'Error desconocido';
   }
 
   private mapearNombreCampo(campo: string): string {

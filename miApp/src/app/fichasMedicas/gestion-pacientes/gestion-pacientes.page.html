@@ -147,29 +147,84 @@
         </ion-card-content>
       </ion-card>
 
-      <!-- Lista de pacientes familiares -->
-      <app-lista-pacientes-familia
-        *ngIf="pacientesFiltrados.length > 0"
-        [pacientes]="pacientesFiltrados"
-        [mostrarBotonAgregar]="true"
-        [titulo]="'Miembros del Grupo Familiar'"
-        [mostrarEstadisticas]="false"
-        [estadisticas]="estadisticas"
-        (pacienteSeleccionado)="onPacienteSeleccionado($event)"
-        (agregarPaciente)="onAgregarPaciente()"
-        (agregarFamilia)="onAgregarFamilia()"
-        (verFamilias)="onVerTodasFamilias()">
-      </app-lista-pacientes-familia>
+      <!-- Lista de Familias en Accordion -->
+      <div class="familias-section" *ngIf="familias.length > 0">
+        <h2 style="padding: 16px 0 8px 0; color: #2c3e50; font-weight: 600;">Mis Familias</h2>
+        
+        <ion-accordion-group>
+          <ion-accordion 
+            *ngFor="let familia of familias; trackBy: trackByFamiliaId"
+            [value]="'familia-' + familia.idFamilia">
+            
+            <ion-item slot="header" class="familia-header">
+              <ion-label>{{ familia.nombre }}</ion-label>
+              <div slot="end" class="familia-actions">
+                <ion-badge>{{ familia.miembros?.length || 0 }}</ion-badge>
+                <ion-button 
+                  size="small" 
+                  fill="clear"
+                  (click)="onEditarFamilia(familia); $event.stopPropagation()">
+                  <ion-icon name="pencil" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button 
+                  size="small" 
+                  fill="clear"
+                  color="danger"
+                  (click)="onEliminarFamilia(familia); $event.stopPropagation()">
+                  <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
+            </ion-item>
 
-      <!-- Botón de agregar paciente -->
-      <div class="action-buttons" *ngIf="pacientesFamilia.length > 0">
-        <ion-button 
-          expand="block" 
-          class="add-patient-btn"
-          (click)="onAgregarPaciente()">
-          <ion-icon name="person-add" slot="start"></ion-icon>
-          Agregar Nuevo Paciente al Grupo
-        </ion-button>
+            <div slot="content">
+              <!-- Miembros List -->
+              <div class="miembros-list">
+                <div *ngIf="familia.miembros && familia.miembros.length > 0">
+                  <div 
+                    *ngFor="let miembro of familia.miembros; trackBy: trackByMiembroId"
+                    class="miembro-item"
+                    (click)="miembro.paciente && onPacienteSeleccionado(miembro.paciente)">
+                    
+                    <div class="miembro-avatar">
+                      <img *ngIf="miembro.paciente?.fotoPerfil" [src]="miembro.paciente?.fotoPerfil" alt="foto" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                      <ion-icon *ngIf="!miembro.paciente?.fotoPerfil" name="person-circle"></ion-icon>
+                    </div>
+
+                    <div class="miembro-info">
+                      <div class="miembro-nombre">{{ miembro.paciente?.nombrePaciente || 'Paciente sin nombre' }}</div>
+                      <div class="miembro-rol">
+                        <span class="rol-badge">{{ miembro.rol }}</span>
+                      </div>
+                      <div class="miembro-fecha" *ngIf="miembro.fechaAgregado">
+                        Agregado: {{ miembro.fechaAgregado | date:'shortDate' }}
+                      </div>
+                    </div>
+
+                    <div class="miembro-action">
+                      <ion-icon name="chevron-forward"></ion-icon>
+                    </div>
+                  </div>
+                </div>
+
+                <div *ngIf="!familia.miembros || familia.miembros.length === 0" class="empty-familia">
+                  <div class="empty-icon">
+                    <ion-icon name="people-outline"></ion-icon>
+                  </div>
+                  <p>Esta familia no tiene miembros aún</p>
+                </div>
+              </div>
+
+              <!-- Add Patient Button -->
+              <ion-button 
+                expand="block"
+                class="familia-button"
+                (click)="onAgregarPacienteAFamilia(familia.idFamilia)">
+                <ion-icon name="person-add-outline" slot="start"></ion-icon>
+                Agregar Paciente a esta Familia
+              </ion-button>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
       </div>
 
       <!-- Estado vacío - Sin pacientes -->

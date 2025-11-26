@@ -181,7 +181,9 @@
 <ion-toast
   [isOpen]="mostrarToast"
   [message]="mensajeToast"
-  [duration]="5000" 
+  [duration]="tipoToast === 'error' ? 6000 : 3000" 
   [color]="tipoToast"
+  [cssClass]="'custom-toast ' + (tipoToast === 'error' ? 'toast-error' : 'toast-success')"
+  position="top"
   (didDismiss)="mostrarToast = false">
 </ion-toast>

@@ -49,12 +49,29 @@ export class FamiliaService {
   agregarMiembro(idFamilia: number, idPaciente: number, rol: string, idOwner?: number): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/${idFamilia}/miembros`, {
       idPaciente,
-      rol,
-      idOwner
-    });
+      rol
+    }).pipe(
+      map(res => res.data || res)
+    );
   }
 
   eliminarMiembro(idFamilia: number, idPaciente: number): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}/${idFamilia}/miembros/${idPaciente}`);
+  }
+
+  /**
+   * Elimina una familia completamente
+   */
+  eliminarFamilia(idFamilia: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/${idFamilia}`);
+  }
+
+  /**
+   * Actualiza el nombre y descripción de una familia
+   */
+  actualizarFamilia(idFamilia: number, data: { nombre?: string; descripcion?: string }): Observable<Familia> {
+    return this.http.put<any>(`${this.baseUrl}/${idFamilia}`, data).pipe(
+      map(res => res.data || res)
+    );
   }
 }

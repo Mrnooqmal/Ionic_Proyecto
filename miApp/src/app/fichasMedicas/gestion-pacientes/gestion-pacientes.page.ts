@@ -4,17 +4,18 @@ import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton,    
   IonRefresher, IonRefresherContent, 
   IonButtons, IonBackButton, IonSpinner, IonCard, IonCardContent,
-  IonIcon, IonAvatar 
+  IonIcon, IonAvatar, IonAccordionGroup, IonAccordion, IonItem, IonLabel,
+  IonBadge, AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { 
   arrowBack, refresh, person, add, personAdd, people, medical,
-  search, alertCircle, checkmarkCircle, time, informationCircle 
+  search, alertCircle, checkmarkCircle, time, informationCircle, chevronForward,
+  personCircle, personAddOutline, pencil, trashOutline
 } from 'ionicons/icons';
 
 import { BusquedaPacientesComponent } from '../../../compartidos/componentes/busqueda-pacientes/busqueda-pacientes.component';
-import { ListaPacientesFamiliaComponent } from '../../../compartidos/componentes/lista-pacientes-familia/lista-pacientes-familia.component';
 import { PacientesService, Paciente } from '../../../core/servicios/pacientes.service';
 import { FamiliaService, Familia } from '../../../core/servicios/familias.service';
 
@@ -29,8 +30,8 @@ import { FamiliaService, Familia } from '../../../core/servicios/familias.servic
     IonButtons, IonCard, IonCardContent,
     IonRefresher, IonRefresherContent,
     IonIcon, IonAvatar, IonBackButton, IonSpinner,
-    BusquedaPacientesComponent,
-    ListaPacientesFamiliaComponent
+    IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonBadge,
+    BusquedaPacientesComponent
   ]
 })
 export class GestionPacientesPage implements OnInit {
@@ -59,11 +60,14 @@ export class GestionPacientesPage implements OnInit {
   constructor(
     private familiaService: FamiliaService,
     private pacientesService: PacientesService,
-    private router: Router
+    private router: Router,
+    private alertController: AlertController,
+    private toastController: ToastController
   ) {
     addIcons({ 
       arrowBack, refresh, person, add, personAdd, people, medical,
-      search, alertCircle, checkmarkCircle, time, informationCircle 
+      search, alertCircle, checkmarkCircle, time, informationCircle,
+      chevronForward, personCircle, personAddOutline, pencil, trashOutline
     });
   }
 
@@ -72,30 +76,30 @@ export class GestionPacientesPage implements OnInit {
     this.cargarDatosIniciales();
   }
 
+  ionViewWillEnter() {
+    console.log('GestionPacientesPage - ionViewWillEnter');
+    this.cargarDatosIniciales();
+  }
+
   ionViewDidEnter() {
-    console.log('GestionPacientesPage - ionViewDidEnter - Vista visible');
+    console.log('GestionPacientesPage - ionViewDidEnter');
     
-    // Scroll al top cuando la vista se carga
     setTimeout(() => {
       if (this.ionContent) {
         this.ionContent.scrollToTop(0);
       }
     }, 100);
-    
-    // Solo recargar si ya estaba inicializado pero necesitamos datos frescos
-    if (this.inicializado && (this.pacientesFamilia.length === 0 || this.error)) {
-      console.log('Recargando datos porque la vista está visible pero hay problemas');
-      this.cargarDatosIniciales();
-    }
   }
 
   cargarDatosIniciales() {
     this.cargando = true;
     this.error = '';
+    this.pacientesFamilia = [];
+    this.pacientesFiltrados = [];
+    this.familias = [];
     
     console.log('Cargando datos iniciales...');
     
-    // Primero cargar el paciente actual
     this.pacientesService.getPacienteById(this.pacienteActualId).subscribe({
       next: (paciente) => {
         this.pacienteActualNombre = paciente?.nombrePaciente || 'Paciente Principal';
@@ -134,19 +138,20 @@ export class GestionPacientesPage implements OnInit {
 
   private procesarFamiliasYMiembros(familias: any) {
     try {
-      // Procesar las familias recibidas
       this.familias = Array.isArray(familias) ? familias : (familias?.data || []);
       console.log(`${this.familias.length} familias procesadas`);
+      console.log('Contenido familias:', JSON.stringify(this.familias));
 
-      // Extraer y procesar todos los miembros de todas las familias
       const todosLosMiembros: Paciente[] = [];
       
       this.familias.forEach((familia: Familia) => {
+        console.log(`Procesando familia ${familia.idFamilia} con ${familia.miembros?.length || 0} miembros`);
+        
         if (familia.miembros && Array.isArray(familia.miembros)) {
           familia.miembros.forEach((miembro: any) => {
-            // El miembro puede ser el paciente directamente o tener una propiedad paciente
             const paciente = miembro.paciente || miembro;
             if (paciente && paciente.idPaciente) {
+              console.log(`Agregando paciente: ${paciente.nombrePaciente} (ID: ${paciente.idPaciente})`);
               todosLosMiembros.push({
                 idPaciente: paciente.idPaciente,
                 nombrePaciente: paciente.nombrePaciente || 'Paciente sin nombre',
@@ -166,17 +171,15 @@ export class GestionPacientesPage implements OnInit {
         }
       });
 
-      // Eliminar duplicados por idPaciente
       const pacientesUnicos = this.eliminarDuplicados(todosLosMiembros);
       
-      // Ordenar por nombre
       this.pacientesFamilia = pacientesUnicos.sort((a, b) => 
         (a.nombrePaciente || '').localeCompare(b.nombrePaciente || '')
       );
 
-      console.log(`${this.pacientesFamilia.length} pacientes únicos cargados`);
+      console.log(`Total pacientes únicos cargados: ${this.pacientesFamilia.length}`);
+      console.log('Lista pacientes:', this.pacientesFamilia.map(p => `${p.idPaciente}-${p.nombrePaciente}`));
       
-      // Actualizar datos filtrados y estadísticas
       this.pacientesFiltrados = this.pacientesFamilia;
       this.calcularEstadisticas();
       this.inicializado = true;
@@ -303,20 +306,140 @@ export class GestionPacientesPage implements OnInit {
   }
 
   onAgregarPaciente() {
-    console.log('➕ Agregar nuevo paciente');
+    console.log('Agregar nuevo paciente');
     this.router.navigate(['/fichas/crear-paciente'], {
       replaceUrl: false
     });
   }
 
-  // MÉTODOS FALTANTES - AGREGADOS
+  onAgregarPacienteAFamilia(familiaId: number) {
+    console.log('Agregar paciente a familia:', familiaId);
+    this.router.navigate(['/fichas/crear-paciente'], {
+      replaceUrl: false,
+      state: { familiaId }
+    });
+  }
+
   onAgregarFamilia() {
     console.log('Agregar nueva familia - Función no implementada aún');
-    // this.router.navigate(['/familias/crear']);
   }
 
   onVerTodasFamilias() {
     console.log('Ver todas las familias - Función no implementada aún');
-    // this.router.navigate(['/familias']);
+  }
+
+  trackByFamiliaId(index: number, familia: Familia): number {
+    return familia.idFamilia;
+  }
+
+  trackByMiembroId(index: number, miembro: any): number {
+    return miembro.idPaciente || index;
+  }
+
+  async onEditarFamilia(familia: Familia) {
+    console.log('Editar familia:', familia.idFamilia);
+    
+    const alert = await this.alertController.create({
+      header: 'Editar Familia',
+      message: 'Actualiza el nombre de la familia',
+      inputs: [
+        {
+          name: 'nombre',
+          type: 'text',
+          placeholder: 'Nombre de la familia',
+          value: familia.nombre,
+          attributes: {
+            required: true
+          }
+        },
+        {
+          name: 'descripcion',
+          type: 'text',
+          placeholder: 'Descripción (opcional)',
+          value: familia.descripcion || ''
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Guardar',
+          handler: async (data) => {
+            if (!data.nombre || data.nombre.trim() === '') {
+              await this.mostrarToast('El nombre de la familia es requerido', 'warning');
+              return false;
+            }
+            
+            this.familiaService.actualizarFamilia(familia.idFamilia, {
+              nombre: data.nombre.trim(),
+              descripcion: data.descripcion?.trim() || undefined
+            }).subscribe({
+              next: async () => {
+                console.log('Familia actualizada');
+                await this.mostrarToast('Familia actualizada exitosamente', 'success');
+                // Recargar las familias
+                this.cargarDatosIniciales();
+              },
+              error: async (err) => {
+                console.error('Error actualizando familia:', err);
+                await this.mostrarToast('Error al actualizar la familia', 'danger');
+              }
+            });
+            return true;
+          }
+        }
+      ]
+    });
+    
+    await alert.present();
+  }
+
+  async onEliminarFamilia(familia: Familia) {
+    console.log('Eliminar familia:', familia.idFamilia);
+    
+    const alert = await this.alertController.create({
+      header: 'Eliminar Familia',
+      message: `¿Estás seguro de que deseas eliminar la familia "${familia.nombre}"? Todos los miembros serán removidos de esta familia. Esta acción no se puede deshacer.`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            this.familiaService.eliminarFamilia(familia.idFamilia).subscribe({
+              next: async () => {
+                console.log('Familia eliminada');
+                await this.mostrarToast('Familia eliminada exitosamente', 'success');
+                // Recargar las familias
+                this.cargarDatosIniciales();
+              },
+              error: async (err) => {
+                console.error('Error eliminando familia:', err);
+                await this.mostrarToast('Error al eliminar la familia', 'danger');
+              }
+            });
+          }
+        }
+      ]
+    });
+    
+    await alert.present();
+  }
+
+  private async mostrarToast(mensaje: string, color: string) {
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 3000,
+      position: 'top',
+      color: color,
+      cssClass: 'custom-toast'
+    });
+    await toast.present();
   }
 }

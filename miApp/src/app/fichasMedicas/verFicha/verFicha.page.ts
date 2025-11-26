@@ -213,12 +213,16 @@ export class VerFichaPage implements OnInit {
 
   private async confirmarEliminacion() {
     try {
-      // Obtener las familias del paciente actual
+      // Obtener las familias del PACIENTE ACTUAL (el dueño)
       this.familiaService.getFamiliasPorPaciente(this.pacienteActualId).subscribe({
         next: async (familias: any) => {
           const familiasArray = familias.data || [];
           
+          console.log('Familias obtenidas:', familiasArray);
+          console.log('Buscando paciente a eliminar con ID:', this.fichaId);
+          
           if (familiasArray.length === 0) {
+            console.error('No se encontraron familias del paciente actual');
             await this.mostrarToast('No se encontró ninguna familia', 'warning');
             return;
           }
@@ -226,14 +230,19 @@ export class VerFichaPage implements OnInit {
           // Buscar la familia que contiene al paciente a eliminar
           let familiaEncontrada = null;
           for (const familia of familiasArray) {
-            const miembro = familia.miembros?.find((m: any) => m.idPaciente === parseInt(this.fichaId));
-            if (miembro) {
-              familiaEncontrada = familia;
-              break;
+            console.log(`Verificando familia ${familia.idFamilia}: ${familia.miembros?.length || 0} miembros`);
+            if (familia.miembros && familia.miembros.length > 0) {
+              const miembro = familia.miembros.find((m: any) => m.idPaciente === parseInt(this.fichaId));
+              if (miembro) {
+                console.log(`Paciente encontrado en familia ${familia.idFamilia}`);
+                familiaEncontrada = familia;
+                break;
+              }
             }
           }
 
           if (!familiaEncontrada) {
+            console.error('El paciente no está en ninguna familia del usuario actual');
             await this.mostrarToast('El paciente no está en tu grupo familiar', 'warning');
             return;
           }
@@ -241,6 +250,7 @@ export class VerFichaPage implements OnInit {
           // Eliminar el miembro de la familia
           this.familiaService.eliminarMiembro(familiaEncontrada.idFamilia, parseInt(this.fichaId)).subscribe({
             next: async () => {
+              console.log('Miembro eliminado exitosamente');
               await this.mostrarToast('Paciente eliminado del grupo familiar exitosamente', 'success');
               // Volver a la página de gestión de pacientes
               this.router.navigate(['/gestion-pacientes']);

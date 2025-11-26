@@ -34,14 +34,12 @@ export class HomeDashboardPage implements OnInit {
   cargando = true;
   error = false;
   
-  // Simula sesión del paciente ID 1
   idPacienteActual = 1;
   usuario = {
     nombre: 'Cargando...',
     info: 'Mi panel de salud'
   };
 
-  // Métricas del dashboard
   metricas = {
     totalConsultas: 0,
     consultasUltimos30Dias: 0,
@@ -49,7 +47,6 @@ export class HomeDashboardPage implements OnInit {
     medicamentosCronicos: 0
   };
 
-  // Datos estadísticos
   estadisticas: DashboardPacienteStats | null = null;
 
   constructor(
@@ -76,17 +73,14 @@ export class HomeDashboardPage implements OnInit {
     this.error = false;
     
     try {
-      // Primero obtener info del paciente
       this.pacientesService.getPacienteById(this.idPacienteActual).subscribe({
         next: (paciente) => {
           this.usuario.nombre = paciente.nombrePaciente;
         },
         error: (err) => {
-          console.warn('No se pudo obtener nombre del paciente:', err);
+          console.warn('No se pudo obtener nombre del paciente:' , err);
         }
       });
-
-      // Luego cargar estadísticas del dashboard
       this.dashboardService.obtenerEstadisticasPaciente(this.idPacienteActual).subscribe({
         next: (stats) => {
           this.estadisticas = stats;
@@ -155,7 +149,7 @@ export class HomeDashboardPage implements OnInit {
 
   formatearHora(hora: string): string {
     if (!hora) return '';
-    return hora.substring(0, 5); // HH:MM
+    return hora.substring(0, 5); 
   }
 
   getConsultasPorcentaje(): number {

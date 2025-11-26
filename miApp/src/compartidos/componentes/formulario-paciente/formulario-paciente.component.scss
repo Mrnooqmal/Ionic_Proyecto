@@ -35,3 +35,33 @@
     gap: 12px;
     margin-top: 20px;
   }
+
+  ::ng-deep .custom-toast {
+    &.toast-error {
+      .toast-container {
+        background: linear-gradient(135deg, #ff4757 0%, #ee5a6f 100%) !important;
+        border-left: 4px solid #ff0000 !important;
+        box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4) !important;
+      }
+
+      .toast-message {
+        color: white !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+      }
+    }
+
+    &.toast-success {
+      .toast-container {
+        background: linear-gradient(135deg, #2ed573 0%, #26de81 100%) !important;
+        border-left: 4px solid #00b366 !important;
+        box-shadow: 0 4px 12px rgba(46, 213, 115, 0.4) !important;
+      }
+
+      .toast-message {
+        color: white !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+      }
+    }
+  }

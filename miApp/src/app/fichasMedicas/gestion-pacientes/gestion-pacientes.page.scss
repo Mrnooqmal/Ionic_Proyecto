@@ -250,6 +250,287 @@
       }
     }
   }
+
+  /* Accordion Styles */
+  ion-accordion-group {
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    ion-accordion {
+      --background: #ffffff;
+      --background-expanded: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      }
+
+      ion-item[slot="header"] {
+        --padding-start: 16px;
+        --padding-end: 16px;
+        --padding-top: 14px;
+        --padding-bottom: 14px;
+        --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --color: white;
+        --border-style: none;
+        border-radius: 12px;
+        font-weight: 600;
+        min-height: 60px;
+        --min-height: 60px;
+
+        ion-label {
+          color: white;
+          font-weight: 600;
+          font-size: 1.05em;
+          margin: 0;
+        }
+
+        ion-badge {
+          --background: rgba(255, 255, 255, 0.3);
+          --color: white;
+          font-weight: 600;
+          padding: 4px 10px;
+          border-radius: 20px;
+          margin-left: 8px;
+        }
+
+        .familia-actions {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          margin-right: -8px;
+
+          ion-badge {
+            margin-left: 0;
+            margin-right: 8px;
+          }
+
+          ion-button {
+            --color: rgba(255, 255, 255, 0.8);
+            --padding-start: 8px;
+            --padding-end: 8px;
+            --padding-top: 8px;
+            --padding-bottom: 8px;
+            margin: 0;
+            transition: all 0.2s ease;
+
+            &:hover {
+              --color: white;
+              opacity: 1;
+            }
+
+            &[color="danger"] {
+              --color: rgba(255, 100, 100, 0.9);
+
+              &:hover {
+                --color: #ff6464;
+              }
+            }
+
+            ion-icon {
+              font-size: 20px;
+            }
+          }
+        }
+
+        &:hover {
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+      }
+
+      &[aria-expanded="true"] {
+        ion-item[slot="header"] {
+          border-radius: 12px 12px 0 0;
+        }
+      }
+    }
+  }
+
+  /* Accordion Content Styles */
+  ion-accordion[slot="content"] {
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+  }
+
+  div[slot="content"] {
+    padding: 16px;
+    background: #ffffff;
+    border-top: 1px solid #f0f0f0;
+    animation: slideDown 0.3s ease forwards;
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .miembros-list {
+      margin-bottom: 8px;
+
+      .miembro-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #f8f9fa;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+        user-select: none;
+
+        &:hover {
+          background: #f0f1ff;
+          border-left-color: #667eea;
+          transform: translateX(2px);
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+
+          .miembro-action {
+            ion-icon {
+              opacity: 1;
+            }
+          }
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .miembro-avatar {
+          width: 40px;
+          height: 40px;
+          min-width: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          flex-shrink: 0;
+          font-size: 14px;
+          overflow: hidden;
+
+          ion-icon {
+            font-size: 20px;
+          }
+        }
+
+        .miembro-info {
+          flex: 1;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          .miembro-nombre {
+            font-weight: 600;
+            color: #2c3e50;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.95em;
+          }
+
+          .miembro-rol {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin: 0;
+
+            .rol-badge {
+              background: #e8f1ff;
+              color: #2196f3;
+              padding: 2px 8px;
+              border-radius: 4px;
+              font-size: 0.75em;
+              font-weight: 600;
+              white-space: nowrap;
+            }
+          }
+
+          .miembro-fecha {
+            font-size: 0.75em;
+            color: #95a5a6;
+            margin: 0;
+          }
+        }
+
+        .miembro-action {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          ion-icon {
+            font-size: 18px;
+            color: #667eea;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+          }
+        }
+      }
+
+      .empty-familia {
+        text-align: center;
+        padding: 24px 16px;
+        color: #7f8c8d;
+        background: #f8f9fa;
+        border-radius: 8px;
+
+        .empty-icon {
+          font-size: 36px;
+          margin-bottom: 8px;
+          opacity: 0.5;
+        }
+
+        p {
+          margin: 0;
+          font-size: 0.9em;
+        }
+      }
+    }
+
+    .familia-button {
+      width: 100%;
+      --border-radius: 10px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      font-weight: 600;
+      --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --color: white;
+      --box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      margin-top: 12px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        --box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      ion-icon {
+        margin-right: 8px;
+        font-size: 18px;
+      }
+    }
+  }
 }
 
 .bottom-nav {

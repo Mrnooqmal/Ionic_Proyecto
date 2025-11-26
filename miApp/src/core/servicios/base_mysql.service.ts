@@ -20,19 +20,18 @@ export class BaseMysqlService {
   }
   protected handleError(error: HttpErrorResponse) {
     console.log('ERROR COMPLETO:', error);
+    console.log('ERROR STATUS:', error.status);
     console.log('ERROR BODY:', error.error);
-    console.log('ERROR ERRORS:', error.error?.errors);
     
-    let errorMessage = 'Error desconocido';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      const serverMsg = error.error?.message || error.message;
-      errorMessage = `Código: ${error.status}\nMensaje: ${serverMsg}`;
+    if (error.status === 0) {
+      return throwError(() => ({
+        status: 0,
+        message: 'Error de conexión con el servidor',
+        error: error.error
+      }));
     }
     
-    console.error('API error:', errorMessage);
-    return throwError(() => new Error(errorMessage));
+    return throwError(() => error);
   }
 
   protected get<T>(endpoint: string): Observable<T> {
