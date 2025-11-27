@@ -11,11 +11,11 @@ def limpiar_base_datos():
     connection = mysql.connector.connect(**DB_CONFIG)
     cursor = connection.cursor()
     
-    print("⚠️  ADVERTENCIA: Esto eliminará TODOS los datos de la base de datos")
+    print("ADVERTENCIA: Esto eliminará TODOS los datos de la base de datos")
     confirmacion = input("¿Estás seguro? Escribe 'SI' para continuar: ")
     
     if confirmacion != 'SI':
-        print("❌ Operación cancelada")
+        print("Operación cancelada")
         return
     
     # Orden inverso por dependencias de claves foráneas
@@ -35,13 +35,13 @@ def limpiar_base_datos():
         
         for tabla in tablas:
             cursor.execute(f"DELETE FROM {tabla}")
-            print(f"✅ Tabla {tabla} limpiada - {cursor.rowcount} registros eliminados")
+            print(f"Tabla {tabla} limpiada - {cursor.rowcount} registros eliminados")
         
         # Resetear auto_increment
         tablas_auto_increment = ['Paciente', 'Consulta', 'Diagnostico', 'Familia']
         for tabla in tablas_auto_increment:
             cursor.execute(f"ALTER TABLE {tabla} AUTO_INCREMENT = 1")
-            print(f"✅ Auto_increment de {tabla} reseteado")
+            print(f"Auto_increment de {tabla} reseteado")
         
         # Reactivar verificación de claves foráneas
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
@@ -51,7 +51,7 @@ def limpiar_base_datos():
         
     except Exception as e:
         connection.rollback()
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
     finally:
         cursor.close()
         connection.close()

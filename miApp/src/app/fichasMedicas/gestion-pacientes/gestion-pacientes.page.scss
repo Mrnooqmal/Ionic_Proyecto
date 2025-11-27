@@ -51,6 +51,7 @@
       display: flex;
       align-items: center;
       gap: 16px;
+      justify-content: space-between;
     }
 
     .user-avatar {
@@ -65,6 +66,7 @@
     }
 
     .patient-info {
+      flex: 1;
       h1 {
         margin: 0 0 4px 0;
         font-size: 1.5em;
@@ -75,6 +77,21 @@
         margin: 0;
         opacity: 0.9;
         font-size: 0.9em;
+      }
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 8px;
+      
+      .add-familia-btn {
+        --background: rgba(255, 255, 255, 0.2);
+        --background-hover: rgba(255, 255, 255, 0.3);
+        color: white;
+        
+        ion-icon {
+          margin-right: 4px;
+        }
       }
     }
   }

@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const cors = require('cors');
 const EventEmitter = require('events');
 const awsConfig = require('./aws-config');
@@ -14,7 +14,7 @@ app.use(express.json({ limit: '50mb' })); // Aumentado de 1mb a 50mb
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
-// Pool de conexiones MySQL
+// Pool de conexiones MySQL con promesas
 const db = mysql.createPool({
   host: '34.233.199.164',
   user: 'meditrack_user',
@@ -28,27 +28,23 @@ const db = mysql.createPool({
 });
 
 // Probar conexión inicial
-db.getConnection((err, connection) => {
-  if (err) {
-    console.error('Error conectando a MySQL:', err.message);
-    setTimeout(() => {
-      db.getConnection((retryErr, retryConnection) => {
-        if (retryErr) {
-          console.error('Error en reintento:', retryErr.message);
-        } else {
-          console.log('Conectado a MySQL en EC2 (AWS)');
-          retryConnection.release();
-        }
-      });
-    }, 5000);
-    return;
-  }
+db.getConnection().then((connection) => {
   console.log('Conectado a MySQL en EC2 (AWS)');
   connection.release();
+}).catch((err) => {
+  console.error('Error conectando a MySQL:', err.message);
+  setTimeout(() => {
+    db.getConnection().then((connection) => {
+      console.log('Conectado a MySQL en EC2 (AWS) - Reintento');
+      connection.release();
+    }).catch((retryErr) => {
+      console.error('Error en reintento:', retryErr.message);
+    });
+  }, 5000);
 });
 
 // SSE - Endpoint para stream de cambios
-app.get('/api/pacientes/stream', (req, res) => {
+app.get('/api/eventos', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -78,49 +74,44 @@ function notificarClientes(evento, data) {
 }
 
 // GET /api/pacientes - Obtener todos los pacientes
-app.get('/api/pacientes', (req, res) => {
-  const query = 'SELECT * FROM Paciente ORDER BY idPaciente DESC';
- 
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Error en GET /api/pacientes:', err.message);
-      return res.status(500).json({ 
-        error: 'Error obteniendo pacientes', 
-        details: err.message 
-      });
-    }
-    
+app.get('/api/pacientes', async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT * FROM Paciente ORDER BY idPaciente DESC');
     console.log(`GET /api/pacientes - ${results.length} pacientes encontrados`);
     res.json(results);
-  });
+  } catch (err) {
+    console.error('Error en GET /api/pacientes:', err.message);
+    return res.status(500).json({ 
+      error: 'Error obteniendo pacientes', 
+      details: err.message 
+    });
+  }
 });
 
 // GET /api/pacientes/:id - Obtener paciente por ID
-app.get('/api/pacientes/:id', (req, res) => {
+app.get('/api/pacientes/:id', async (req, res) => {
   const { id } = req.params;
-  const query = 'SELECT * FROM Paciente WHERE idPaciente = ?';
- 
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error(`Error en GET /api/pacientes/${id}:`, err.message);
-      return res.status(500).json({ 
-        error: 'Error del servidor', 
-        details: err.message 
-      });
-    }
-   
+  try {
+    const [results] = await db.query('SELECT * FROM Paciente WHERE idPaciente = ?', [id]);
+    
     if (results.length === 0) {
       console.log(`GET /api/pacientes/${id} - Paciente no encontrado`);
       return res.status(404).json({ error: 'Paciente no encontrado' });
     }
-   
+    
     console.log(`GET /api/pacientes/${id} - Paciente encontrado`);
     res.json(results[0]);
-  });
+  } catch (err) {
+    console.error(`Error en GET /api/pacientes/${id}:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error del servidor', 
+      details: err.message 
+    });
+  }
 });
 
 // POST /api/pacientes - Crear nuevo paciente
-app.post('/api/pacientes', (req, res) => {
+app.post('/api/pacientes', async (req, res) => {
   const { 
     nombrePaciente, 
     fechaNacimiento, 
@@ -150,17 +141,10 @@ app.post('/api/pacientes', (req, res) => {
     });
   }
 
-  if (correo) {
-    const checkEmailQuery = 'SELECT idPaciente FROM Paciente WHERE correo = ?';
-    db.query(checkEmailQuery, [correo], (emailErr, emailResults) => {
-      if (emailErr) {
-        console.error('Error verificando email:', emailErr.message);
-        return res.status(500).json({ 
-          error: 'Error verificando correo', 
-          details: emailErr.message 
-        });
-      }
-
+  try {
+    // Verificar correo si se proporciona
+    if (correo) {
+      const [emailResults] = await db.query('SELECT idPaciente FROM Paciente WHERE correo = ?', [correo]);
       if (emailResults && emailResults.length > 0) {
         console.log(`Email ${correo} ya existe en la base de datos`);
         return res.status(400).json({ 
@@ -169,71 +153,62 @@ app.post('/api/pacientes', (req, res) => {
           code: 'DUPLICATE_EMAIL'
         });
       }
+    }
 
-      insertarPaciente();
-    });
-  } else {
-    insertarPaciente();
-  }
-
-  function insertarPaciente() {
-    const query = `
-      INSERT INTO Paciente
-      (nombrePaciente, fotoPerfil, fechaNacimiento, correo, telefono, direccion, sexo, nacionalidad, ocupacion, prevision, tipoSangre)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-   
-    db.query(query, [
-      nombrePaciente,
-      fotoPerfil || null,
-      fechaNacimiento,
-      correo || null,
-      telefono || null,
-      direccion || null,
-      sexo.toLowerCase(),
-      nacionalidad || null,
-      ocupacion || null,
-      prevision || null,
-      tipoSangre || null
-    ], (err, results) => {
-        if (err) {
-          console.error('Error en POST /api/pacientes:', err.message);
-          return res.status(500).json({ 
-            error: 'Error creando paciente', 
-            details: err.message 
-          });
-        }
-       
-        const nuevoPaciente = {
-          idPaciente: results.insertId,
-          nombrePaciente,
-          fotoPerfil: fotoPerfil || null,
-          fechaNacimiento,
-          correo: correo || null,
-          telefono: telefono || null,
-          direccion: direccion || null,
-          sexo: sexo.toLowerCase(),
-          nacionalidad: nacionalidad || null,
-          ocupacion: ocupacion || null,
-          prevision: prevision || null,
-          tipoSangre: tipoSangre || null
-        };
-
-        console.log(`POST /api/pacientes - Paciente creado con ID: ${results.insertId}`);
-        
-        res.status(201).json({
-          data: nuevoPaciente,
-          message: 'Paciente creado exitosamente'
-        });
-
-        notificarClientes('paciente_creado', nuevoPaciente);
-      }
+    // Insertar paciente
+    const [result] = await db.query(
+      `INSERT INTO Paciente
+       (nombrePaciente, fotoPerfil, fechaNacimiento, correo, telefono, direccion, sexo, nacionalidad, ocupacion, prevision, tipoSangre)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nombrePaciente,
+        fotoPerfil || null,
+        fechaNacimiento,
+        correo || null,
+        telefono || null,
+        direccion || null,
+        sexo.toLowerCase(),
+        nacionalidad || null,
+        ocupacion || null,
+        prevision || null,
+        tipoSangre || null
+      ]
     );
+
+    const nuevoPaciente = {
+      idPaciente: result.insertId,
+      nombrePaciente,
+      fotoPerfil: fotoPerfil || null,
+      fechaNacimiento,
+      correo: correo || null,
+      telefono: telefono || null,
+      direccion: direccion || null,
+      sexo: sexo.toLowerCase(),
+      nacionalidad: nacionalidad || null,
+      ocupacion: ocupacion || null,
+      prevision: prevision || null,
+      tipoSangre: tipoSangre || null
+    };
+
+    console.log(`POST /api/pacientes - Paciente creado con ID: ${result.insertId}`);
+    
+    res.status(201).json({
+      data: nuevoPaciente,
+      message: 'Paciente creado exitosamente'
+    });
+
+    notificarClientes('paciente_creado', nuevoPaciente);
+  } catch (err) {
+    console.error('Error en POST /api/pacientes:', err.message);
+    return res.status(500).json({ 
+      error: 'Error creando paciente', 
+      details: err.message 
+    });
   }
 });
 
 // PUT /api/pacientes/:id - Actualizar paciente
-app.put('/api/pacientes/:id', (req, res) => {
+app.put('/api/pacientes/:id', async (req, res) => {
   const { id } = req.params;
   const {
     nombrePaciente,
@@ -251,17 +226,9 @@ app.put('/api/pacientes/:id', (req, res) => {
   console.log(`PUT /api/pacientes/${id} - Actualizando paciente`);
   console.log('Correo recibido:', correo);
 
-  // Primero verificar si el paciente existe y obtener su correo actual
-  const checkQuery = 'SELECT correo FROM Paciente WHERE idPaciente = ?';
- 
-  db.query(checkQuery, [id], (checkErr, checkResults) => {
-    if (checkErr) {
-      console.error(`Error verificando paciente ${id}:`, checkErr.message);
-      return res.status(500).json({ 
-        error: 'Error verificando paciente', 
-        details: checkErr.message 
-      });
-    }
+  try {
+    // Verificar si el paciente existe y obtener su correo actual
+    const [checkResults] = await db.query('SELECT correo FROM Paciente WHERE idPaciente = ?', [id]);
 
     if (checkResults.length === 0) {
       console.log(`PUT /api/pacientes/${id} - Paciente no encontrado`);
@@ -274,163 +241,81 @@ app.put('/api/pacientes/:id', (req, res) => {
     console.log('Correo actual en BD:', correoActual);
     console.log('Correo nuevo recibido:', correo);
 
-    // Si el correo no cambió, hacer UPDATE normal
-    if (correo === correoActual || correo === null || correo === '') {
-      console.log('Correo no cambió o es nulo, procediendo con UPDATE normal');
-     
-      const updateQuery = `
-        UPDATE Paciente
-        SET nombrePaciente = ?, fechaNacimiento = ?, correo = ?, telefono = ?,
-        direccion = ?, sexo = ?, nacionalidad = ?, ocupacion = ?,
-        prevision = ?, tipoSangre = ?
-        WHERE idPaciente = ?
-      `;
+    // Si el correo cambió, verificar que no exista en otro paciente
+    if (correo && correo !== correoActual && correo !== '' && correo !== null) {
+      console.log('Correo cambió, verificando duplicado...');
+      const [emailResults] = await db.query('SELECT idPaciente FROM Paciente WHERE correo = ? AND idPaciente != ?', [correo, id]);
+      
+      if (emailResults.length > 0) {
+        console.log('Correo ya existe en otro paciente');
+        return res.status(400).json({ 
+          error: 'El correo electrónico ya está en uso por otro paciente' 
+        });
+      }
+    }
 
-      const values = [
+    // Realizar UPDATE
+    console.log('Procediendo con UPDATE');
+    const [updateResult] = await db.query(
+      `UPDATE Paciente
+       SET nombrePaciente = ?, fechaNacimiento = ?, correo = ?, telefono = ?,
+           direccion = ?, sexo = ?, nacionalidad = ?, ocupacion = ?,
+           prevision = ?, tipoSangre = ?
+       WHERE idPaciente = ?`,
+      [
         nombrePaciente,
         fechaNacimiento,
-        correo,
-        telefono,
-        direccion,
+        correo || null,
+        telefono || null,
+        direccion || null,
         sexo,
-        nacionalidad,
-        ocupacion,
-        prevision,
-        tipoSangre,
+        nacionalidad || null,
+        ocupacion || null,
+        prevision || null,
+        tipoSangre || null,
         id
-      ];
+      ]
+    );
 
-      db.query(updateQuery, values, (updateErr, updateResult) => {
-        if (updateErr) {
-          console.error(`Error en UPDATE paciente ${id}:`, updateErr.message);
-          return res.status(500).json({ 
-            error: 'Error actualizando paciente', 
-            details: updateErr.message 
-          });
-        }
-       
-        if (updateResult.affectedRows === 0) {
-          return res.status(404).json({ error: 'Paciente no encontrado' });
-        }
-       
-        const pacienteActualizado = {
-          idPaciente: parseInt(id),
-          nombrePaciente,
-          fechaNacimiento,
-          correo,
-          telefono,
-          direccion,
-          sexo,
-          nacionalidad,
-          ocupacion,
-          prevision,
-          tipoSangre
-        };
-
-        console.log(`PUT /api/pacientes/${id} - Paciente actualizado exitosamente`);
-        res.json(pacienteActualizado);
-
-        // Notificar SSE
-        notificarClientes('paciente_actualizado', pacienteActualizado);
-      });
-    } else {
-      // Si el correo cambió, verificar que no exista en otro paciente
-      console.log('Correo cambió, verificando duplicado...');
-     
-      const checkEmailQuery = 'SELECT idPaciente FROM Paciente WHERE correo = ? AND idPaciente != ?';
-     
-      db.query(checkEmailQuery, [correo, id], (emailErr, emailResults) => {
-        if (emailErr) {
-          console.error('Error verificando correo:', emailErr.message);
-          return res.status(500).json({ 
-            error: 'Error verificando correo', 
-            details: emailErr.message 
-          });
-        }
-
-        if (emailResults.length > 0) {
-          console.log('Correo ya existe en otro paciente');
-          return res.status(400).json({ 
-            error: 'El correo electrónico ya está en uso por otro paciente' 
-          });
-        }
-
-        // Si el correo no existe en otro paciente, proceder con UPDATE
-        console.log('Correo disponible, procediendo con UPDATE');
-       
-        const updateQuery = `
-          UPDATE Paciente
-          SET nombrePaciente = ?, fechaNacimiento = ?, correo = ?, telefono = ?,
-          direccion = ?, sexo = ?, nacionalidad = ?, ocupacion = ?,
-          prevision = ?, tipoSangre = ?
-          WHERE idPaciente = ?
-        `;
-
-        const values = [
-          nombrePaciente,
-          fechaNacimiento,
-          correo,
-          telefono,
-          direccion,
-          sexo,
-          nacionalidad,
-          ocupacion,
-          prevision,
-          tipoSangre,
-          id
-        ];
-
-        db.query(updateQuery, values, (updateErr, updateResult) => {
-          if (updateErr) {
-            console.error(`Error en UPDATE paciente ${id}:`, updateErr.message);
-            return res.status(500).json({ 
-              error: 'Error actualizando paciente', 
-              details: updateErr.message 
-            });
-          }
-         
-          if (updateResult.affectedRows === 0) {
-            return res.status(404).json({ error: 'Paciente no encontrado' });
-          }
-         
-          const pacienteActualizado = {
-            idPaciente: parseInt(id),
-            nombrePaciente,
-            fechaNacimiento,
-            correo,
-            telefono,
-            direccion,
-            sexo,
-            nacionalidad,
-            ocupacion,
-            prevision,
-            tipoSangre
-          };
-
-          console.log(`PUT /api/pacientes/${id} - Paciente actualizado exitosamente`);
-          res.json(pacienteActualizado);
-
-          // Notificar SSE
-          notificarClientes('paciente_actualizado', pacienteActualizado);
-        });
-      });
+    if (updateResult.affectedRows === 0) {
+      return res.status(404).json({ error: 'Paciente no encontrado' });
     }
-  });
+
+    const pacienteActualizado = {
+      idPaciente: parseInt(id),
+      nombrePaciente,
+      fechaNacimiento,
+      correo: correo || null,
+      telefono: telefono || null,
+      direccion: direccion || null,
+      sexo,
+      nacionalidad: nacionalidad || null,
+      ocupacion: ocupacion || null,
+      prevision: prevision || null,
+      tipoSangre: tipoSangre || null
+    };
+
+    console.log(`PUT /api/pacientes/${id} - Paciente actualizado exitosamente`);
+    res.json(pacienteActualizado);
+
+    // Notificar SSE
+    notificarClientes('paciente_actualizado', pacienteActualizado);
+  } catch (err) {
+    console.error(`Error en PUT /api/pacientes/${id}:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error actualizando paciente', 
+      details: err.message 
+    });
+  }
 });
 
-// DELETE /api/pacientes/:id - Eliminar paciente
-app.delete('/api/pacientes/:id', (req, res) => {
+// DELETE /api/pacientes/:id - Eliminar paciente completamente
+app.delete('/api/pacientes/:id', async (req, res) => {
   const { id } = req.params;
-  const query = 'DELETE FROM Paciente WHERE idPaciente = ?';
 
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error(`Error en DELETE /api/pacientes/${id}:`, err.message);
-      return res.status(500).json({ 
-        error: 'Error eliminando paciente',
-        details: err.message 
-      });
-    }
+  try {
+    await db.query('DELETE FROM FamiliaPaciente WHERE idPaciente = ?', [id]);
+    const [results] = await db.query('DELETE FROM Paciente WHERE idPaciente = ?', [id]);
 
     if (results.affectedRows === 0) {
       console.log(`DELETE /api/pacientes/${id} - Paciente no encontrado`);
@@ -440,56 +325,57 @@ app.delete('/api/pacientes/:id', (req, res) => {
     console.log(`DELETE /api/pacientes/${id} - Paciente eliminado exitosamente`);
     res.json({ message: 'Paciente eliminado exitosamente' });
 
-    // Notificar SSE
     notificarClientes('paciente_eliminado', { idPaciente: parseInt(id) });
-  });
+  } catch (err) {
+    console.error(`Error en DELETE /api/pacientes/${id}:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error eliminando paciente',
+      details: err.message 
+    });
+  }
 });
 
 // ========== ENDPOINTS DE FAMILIAS ==========
 
 // GET /api/familias/:idPaciente - Obtener familias de un paciente con sus miembros
-app.get('/api/familias/:idPaciente', (req, res) => {
+app.get('/api/familias/:idPaciente', async (req, res) => {
   const { idPaciente } = req.params;
   
   console.log(`GET /api/familias/${idPaciente} - Buscando familias`);
   
-  const query = `
-    SELECT 
-      f.idFamilia, 
-      f.nombre, 
-      f.descripcion, 
-      f.idOwner, 
-      f.created_at, 
-      f.updated_at,
-      fp.idPaciente as miembro_idPaciente,
-      fp.rol as miembro_rol,
-      COALESCE(fp.fechaAgregado, NOW()) as miembro_fechaAgregado,
-      p.nombrePaciente,
-      p.fotoPerfil,
-      p.fechaNacimiento,
-      p.correo,
-      p.telefono,
-      p.direccion,
-      p.sexo,
-      p.nacionalidad,
-      p.ocupacion,
-      p.prevision,
-      p.tipoSangre
-    FROM Familia f
-    LEFT JOIN FamiliaPaciente fp ON f.idFamilia = fp.idFamilia
-    LEFT JOIN Paciente p ON fp.idPaciente = p.idPaciente
-    WHERE f.idOwner = ? OR fp.idPaciente = ?
-    ORDER BY f.idFamilia, COALESCE(fp.fechaAgregado, NOW()) DESC
-  `;
-  
-  db.query(query, [idPaciente, idPaciente], (err, results) => {
-    if (err) {
-      console.error(`Error en GET /api/familias/${idPaciente}:`, err.message);
-      return res.status(500).json({ 
-        error: 'Error obteniendo familias', 
-        details: err.message 
-      });
-    }
+  try {
+    const [results] = await db.query(`
+      SELECT 
+        f.idFamilia, 
+        f.nombre, 
+        f.descripcion, 
+        f.idOwner, 
+        f.created_at, 
+        f.updated_at,
+        fp.idPaciente as miembro_idPaciente,
+        fp.rol as miembro_rol,
+        COALESCE(fp.fechaAgregado, NOW()) as miembro_fechaAgregado,
+        p.nombrePaciente,
+        p.fotoPerfil,
+        p.fechaNacimiento,
+        p.correo,
+        p.telefono,
+        p.direccion,
+        p.sexo,
+        p.nacionalidad,
+        p.ocupacion,
+        p.prevision,
+        p.tipoSangre
+      FROM Familia f
+      INNER JOIN (
+        SELECT idFamilia FROM Familia WHERE idOwner = ?
+        UNION
+        SELECT idFamilia FROM FamiliaPaciente WHERE idPaciente = ?
+      ) familiasPermitidas ON familiasPermitidas.idFamilia = f.idFamilia
+      LEFT JOIN FamiliaPaciente fp ON f.idFamilia = fp.idFamilia
+      LEFT JOIN Paciente p ON fp.idPaciente = p.idPaciente
+      ORDER BY f.idFamilia, COALESCE(fp.fechaAgregado, NOW()) DESC
+    `, [idPaciente, idPaciente]);
     
     const familiasMap = new Map();
     
@@ -539,53 +425,51 @@ app.get('/api/familias/:idPaciente', (req, res) => {
       console.log(`  Familia ${f.idFamilia} (${f.nombre}): ${f.miembros.length} miembros`);
     });
     res.json({ data: familias });
-  });
+  } catch (err) {
+    console.error(`Error en GET /api/familias/${idPaciente}:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error obteniendo familias', 
+      details: err.message 
+    });
+  }
 });
 
-// GET /api/familias/:id - Obtener familia por ID (ENDPOINT NUEVO - SOLUCIÓN AL 404)
-app.get('/api/familias/:id', (req, res) => {
+// GET /api/familias/byid/:id - Obtener familia por ID (ENDPOINT PARA COMPATIBILIDAD)
+app.get('/api/familias/byid/:id', async (req, res) => {
   const { id } = req.params;
   
   console.log(`GET /api/familias/${id} - Buscando familia por ID`);
   
-  const query = `
-    SELECT 
-      f.idFamilia, 
-      f.nombre, 
-      f.descripcion, 
-      f.idOwner, 
-      f.created_at, 
-      f.updated_at,
-      fp.idPaciente as miembro_idPaciente,
-      fp.rol as miembro_rol,
-      COALESCE(fp.fechaAgregado, NOW()) as miembro_fechaAgregado,
-      p.nombrePaciente,
-      p.fotoPerfil,
-      p.fechaNacimiento,
-      p.correo,
-      p.telefono,
-      p.direccion,
-      p.sexo,
-      p.nacionalidad,
-      p.ocupacion,
-      p.prevision,
-      p.tipoSangre
-    FROM Familia f
-    LEFT JOIN FamiliaPaciente fp ON f.idFamilia = fp.idFamilia
-    LEFT JOIN Paciente p ON fp.idPaciente = p.idPaciente
-    WHERE f.idFamilia = ?
-    ORDER BY COALESCE(fp.fechaAgregado, NOW()) DESC
-  `;
-  
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error(`Error en GET /api/familias/${id}:`, err.message);
-      return res.status(500).json({ 
-        error: 'Error obteniendo familia', 
-        details: err.message 
-      });
-    }
-    
+  try {
+    const [results] = await db.query(`
+      SELECT 
+        f.idFamilia, 
+        f.nombre, 
+        f.descripcion, 
+        f.idOwner, 
+        f.created_at, 
+        f.updated_at,
+        fp.idPaciente as miembro_idPaciente,
+        fp.rol as miembro_rol,
+        COALESCE(fp.fechaAgregado, NOW()) as miembro_fechaAgregado,
+        p.nombrePaciente,
+        p.fotoPerfil,
+        p.fechaNacimiento,
+        p.correo,
+        p.telefono,
+        p.direccion,
+        p.sexo,
+        p.nacionalidad,
+        p.ocupacion,
+        p.prevision,
+        p.tipoSangre
+      FROM Familia f
+      LEFT JOIN FamiliaPaciente fp ON f.idFamilia = fp.idFamilia
+      LEFT JOIN Paciente p ON fp.idPaciente = p.idPaciente
+      WHERE f.idFamilia = ?
+      ORDER BY COALESCE(fp.fechaAgregado, NOW()) DESC
+    `, [id]);
+
     if (results.length === 0) {
       console.log(`GET /api/familias/${id} - Familia no encontrada`);
       return res.status(404).json({ error: 'Familia no encontrada' });
@@ -629,11 +513,17 @@ app.get('/api/familias/:id', (req, res) => {
     
     console.log(`GET /api/familias/${id} - Familia encontrada con ${familia.miembros.length} miembros`);
     res.json({ data: familia });
-  });
+  } catch (err) {
+    console.error(`Error en GET /api/familias/${id}:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error obteniendo familia', 
+      details: err.message 
+    });
+  }
 });
 
 // POST /api/familias - Crear nueva familia
-app.post('/api/familias', (req, res) => {
+app.post('/api/familias', async (req, res) => {
   const { nombre, descripcion, idOwner } = req.body;
   
   console.log('📝 POST /api/familias - Creando familia:', { nombre, idOwner });
@@ -644,112 +534,140 @@ app.post('/api/familias', (req, res) => {
     });
   }
   
-  const query = `
-    INSERT INTO Familia (nombre, descripcion, idOwner)
-    VALUES (?, ?, ?)
-  `;
-  
-  db.query(query, [nombre, descripcion || null, idOwner], (err, results) => {
-    if (err) {
-      console.error('Error en POST /api/familias:', err.message);
-      return res.status(500).json({ 
-        error: 'Error creando familia', 
-        details: err.message 
-      });
-    }
+  try {
+    const [result] = await db.query(
+      `INSERT INTO Familia (nombre, descripcion, idOwner)
+       VALUES (?, ?, ?)`,
+      [nombre, descripcion || null, idOwner]
+    );
     
     const nuevaFamilia = {
-      idFamilia: results.insertId,
+      idFamilia: result.insertId,
       nombre,
       descripcion: descripcion || null,
       idOwner,
       miembros: []
     };
     
-    console.log(`POST /api/familias - Familia creada con ID: ${results.insertId}`);
+    console.log(`POST /api/familias - Familia creada con ID: ${result.insertId}`);
     res.status(201).json({ data: nuevaFamilia });
-  });
+    
+    // Notificar a todos los clientes conectados
+    notificarClientes('familia_creada', nuevaFamilia);
+  } catch (err) {
+    console.error('Error en POST /api/familias:', err.message);
+    return res.status(500).json({ 
+      error: 'Error creando familia', 
+      details: err.message 
+    });
+  }
 });
 
 // POST /api/familias/:idFamilia/miembros - Agregar miembro a familia
-app.post('/api/familias/:idFamilia/miembros', (req, res) => {
+app.post('/api/familias/:idFamilia/miembros', async (req, res) => {
   const { idFamilia } = req.params;
   const { idPaciente, rol } = req.body;
   
-  console.log(`POST /api/familias/${idFamilia}/miembros - Agregando miembro:`);
+  console.log(`\nPOST /api/familias/${idFamilia}/miembros - Agregando miembro:`);
   console.log(`  idFamilia: ${idFamilia}`);
   console.log(`  idPaciente: ${idPaciente}`);
   console.log(`  rol: ${rol}`);
   
   if (!idPaciente || !rol) {
+    console.error('Faltan campos requeridos');
     return res.status(400).json({ 
       error: 'Faltan campos requeridos: idPaciente, rol' 
     });
   }
   
-  const checkQuery = 'SELECT idFamilia FROM Familia WHERE idFamilia = ?';
-  
-  db.query(checkQuery, [idFamilia], (checkErr, checkResults) => {
-    if (checkErr) {
-      console.error(`Error verificando familia ${idFamilia}:`, checkErr.message);
-      return res.status(500).json({ 
-        error: 'Error verificando familia', 
-        details: checkErr.message 
-      });
-    }
+  try {
+    const [checkResults] = await db.query('SELECT idFamilia FROM Familia WHERE idFamilia = ?', [idFamilia]);
     
     if (checkResults.length === 0) {
       console.log(`Familia ${idFamilia} no encontrada`);
       return res.status(404).json({ error: 'Familia no encontrada' });
     }
     
-    const insertQuery = `
-      INSERT INTO FamiliaPaciente (idFamilia, idPaciente, rol)
-      VALUES (?, ?, ?)
-    `;
+    const [result] = await db.query(
+      `INSERT INTO FamiliaPaciente (idFamilia, idPaciente, rol)
+       VALUES (?, ?, ?)`,
+      [idFamilia, idPaciente, rol]
+    );
     
-    db.query(insertQuery, [idFamilia, idPaciente, rol], (insertErr) => {
-      if (insertErr) {
-        if (insertErr.code === 'ER_DUP_ENTRY') {
-          console.log(`Miembro ${idPaciente} ya está en familia ${idFamilia}`);
-          return res.status(200).json({ 
-            data: { idFamilia, idPaciente, rol },
-            message: 'Miembro ya existe en la familia'
-          });
-        }
-        
-        console.error(`Error agregando miembro a familia ${idFamilia}:`, insertErr.message);
-        return res.status(500).json({ 
-          error: 'Error agregando miembro', 
-          details: insertErr.message 
-        });
-      }
-      
-      console.log(`Miembro ${idPaciente} agregado exitosamente a familia ${idFamilia}`);
-      res.status(201).json({ 
-        data: { idFamilia, idPaciente, rol },
-        message: 'Miembro agregado exitosamente'
-      });
+    console.log(`Miembro ${idPaciente} agregado exitosamente a familia ${idFamilia}`);
+    console.log('Enviando respuesta 201...');
+    res.status(201).json({ 
+      data: { idFamilia, idPaciente, rol },
+      message: 'Miembro agregado exitosamente'
     });
-  });
+    
+    // Notificar a todos los clientes conectados
+    console.log('Notificando clientes sobre miembro agregado...');
+    notificarClientes('miembro_familia_agregado', { idFamilia, idPaciente, rol });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      console.log(`Miembro ${idPaciente} ya está en familia ${idFamilia}`);
+      return res.status(200).json({ 
+        data: { idFamilia, idPaciente, rol },
+        message: 'Miembro ya existe en la familia'
+      });
+    }
+    
+    console.error(`Error agregando miembro a familia ${idFamilia}:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error agregando miembro', 
+      details: err.message 
+    });
+  }
+});
+
+// PUT /api/familias/:idFamilia/miembros/:idPaciente - Actualizar rol de miembro
+app.put('/api/familias/:idFamilia/miembros/:idPaciente', async (req, res) => {
+  const { idFamilia, idPaciente } = req.params;
+  const { rol } = req.body;
+  
+  console.log(`PUT /api/familias/${idFamilia}/miembros/${idPaciente} - Actualizando rol:`, rol);
+  
+  if (!rol) {
+    return res.status(400).json({ error: 'El rol es requerido' });
+  }
+  
+  try {
+    const [results] = await db.query(
+      'UPDATE FamiliaPaciente SET rol = ? WHERE idFamilia = ? AND idPaciente = ?',
+      [rol, idFamilia, idPaciente]
+    );
+    
+    if (results.affectedRows === 0) {
+      console.log(`Miembro no encontrado en familia`);
+      return res.status(404).json({ error: 'Miembro no encontrado en familia' });
+    }
+    
+    console.log(`Rol actualizado exitosamente`);
+    res.json({ success: true, message: 'Rol actualizado', data: { idFamilia, idPaciente, rol } });
+    
+    // Notificar a todos los clientes conectados
+    notificarClientes('miembro_familia_rol_actualizado', { idFamilia, idPaciente, rol });
+  } catch (err) {
+    console.error(`Error actualizando rol:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error actualizando rol', 
+      details: err.message 
+    });
+  }
 });
 
 // DELETE /api/familias/:idFamilia/miembros/:idPaciente - Eliminar miembro de familia
-app.delete('/api/familias/:idFamilia/miembros/:idPaciente', (req, res) => {
+app.delete('/api/familias/:idFamilia/miembros/:idPaciente', async (req, res) => {
   const { idFamilia, idPaciente } = req.params;
   
   console.log(`DELETE /api/familias/${idFamilia}/miembros/${idPaciente}`);
   
-  const query = 'DELETE FROM FamiliaPaciente WHERE idFamilia = ? AND idPaciente = ?';
-  
-  db.query(query, [idFamilia, idPaciente], (err, results) => {
-    if (err) {
-      console.error(`Error eliminando miembro:`, err.message);
-      return res.status(500).json({ 
-        error: 'Error eliminando miembro', 
-        details: err.message 
-      });
-    }
+  try {
+    const [results] = await db.query(
+      'DELETE FROM FamiliaPaciente WHERE idFamilia = ? AND idPaciente = ?',
+      [idFamilia, idPaciente]
+    );
     
     if (results.affectedRows === 0) {
       console.log(`Miembro no encontrado en familia`);
@@ -758,107 +676,104 @@ app.delete('/api/familias/:idFamilia/miembros/:idPaciente', (req, res) => {
     
     console.log(`Miembro eliminado de familia`);
     res.json({ message: 'Miembro eliminado exitosamente' });
-  });
+    
+    // Notificar a todos los clientes conectados
+    notificarClientes('miembro_familia_eliminado', { idFamilia, idPaciente });
+  } catch (err) {
+    console.error(`Error eliminando miembro:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error eliminando miembro', 
+      details: err.message 
+    });
+  }
 });
 
-// PUT /api/familias/:idFamilia - Actualizar familia (nombre y descripción)
-app.put('/api/familias/:idFamilia', (req, res) => {
+// PUT /api/familias/:idFamilia - Actualizar familia
+app.put('/api/familias/:idFamilia', async (req, res) => {
   const { idFamilia } = req.params;
   const { nombre, descripcion } = req.body;
   
   console.log(`PUT /api/familias/${idFamilia} - Actualizando familia:`, { nombre, descripcion });
   
-  const query = 'UPDATE Familia SET nombre = ?, descripcion = ?, updated_at = NOW() WHERE idFamilia = ?';
-  
-  db.query(query, [nombre || null, descripcion || null, idFamilia], (err, results) => {
-    if (err) {
-      console.error(`Error actualizando familia:`, err.message);
-      return res.status(500).json({ 
-        error: 'Error actualizando familia', 
-        details: err.message 
-      });
-    }
+  try {
+    const [results] = await db.query(
+      'UPDATE Familia SET nombre = ?, descripcion = ?, updated_at = NOW() WHERE idFamilia = ?',
+      [nombre || null, descripcion || null, idFamilia]
+    );
     
     if (results.affectedRows === 0) {
       console.log(`Familia no encontrada`);
       return res.status(404).json({ error: 'Familia no encontrada' });
     }
     
-    // Obtener la familia actualizada
-    const selectQuery = `
-      SELECT idFamilia, nombre, descripcion, idOwner, created_at, updated_at
-      FROM Familia WHERE idFamilia = ?
-    `;
+    const [familiaResults] = await db.query(
+      `SELECT idFamilia, nombre, descripcion, idOwner, created_at, updated_at
+       FROM Familia WHERE idFamilia = ?`,
+      [idFamilia]
+    );
     
-    db.query(selectQuery, [idFamilia], (err, familiaResults) => {
-      if (err) {
-        console.error(`Error obteniendo familia actualizada:`, err.message);
-        return res.status(500).json({ error: 'Error obteniendo familia actualizada' });
-      }
-      
-      console.log(`Familia actualizada exitosamente`);
-      res.json({ data: familiaResults[0] });
+    console.log(`Familia actualizada exitosamente`);
+    const familiaActualizada = familiaResults[0];
+    res.json({ data: familiaActualizada });
+    
+    notificarClientes('familia_actualizada', { idFamilia, ...familiaActualizada });
+  } catch (err) {
+    console.error(`Error actualizando familia:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error actualizando familia', 
+      details: err.message 
     });
-  });
+  }
 });
 
 // DELETE /api/familias/:idFamilia - Eliminar una familia completamente
-app.delete('/api/familias/:idFamilia', (req, res) => {
+app.delete('/api/familias/:idFamilia', async (req, res) => {
   const { idFamilia } = req.params;
   
   console.log(`DELETE /api/familias/${idFamilia} - Eliminando familia`);
   
-  // Primero eliminar todos los miembros de la familia
-  const deleteMiembrosQuery = 'DELETE FROM FamiliaPaciente WHERE idFamilia = ?';
-  
-  db.query(deleteMiembrosQuery, [idFamilia], (err) => {
-    if (err) {
-      console.error(`Error eliminando miembros de familia:`, err.message);
-      return res.status(500).json({ 
-        error: 'Error eliminando miembros de familia', 
-        details: err.message 
-      });
-    }
+  try {
+    // Primero eliminar todos los miembros de la familia
+    await db.query('DELETE FROM FamiliaPaciente WHERE idFamilia = ?', [idFamilia]);
     
     // Luego eliminar la familia
-    const deleteFamiliaQuery = 'DELETE FROM Familia WHERE idFamilia = ?';
+    const [results] = await db.query('DELETE FROM Familia WHERE idFamilia = ?', [idFamilia]);
     
-    db.query(deleteFamiliaQuery, [idFamilia], (err, results) => {
-      if (err) {
-        console.error(`Error eliminando familia:`, err.message);
-        return res.status(500).json({ 
-          error: 'Error eliminando familia', 
-          details: err.message 
-        });
-      }
-      
-      if (results.affectedRows === 0) {
-        console.log(`Familia no encontrada`);
-        return res.status(404).json({ error: 'Familia no encontrada' });
-      }
-      
-      console.log(`Familia eliminada exitosamente`);
-      res.json({ message: 'Familia eliminada exitosamente' });
+    if (results.affectedRows === 0) {
+      console.log(`Familia no encontrada`);
+      return res.status(404).json({ error: 'Familia no encontrada' });
+    }
+    
+    console.log(`Familia eliminada exitosamente`);
+    res.json({ message: 'Familia eliminada exitosamente' });
+    
+    // Notificar a todos los clientes conectados
+    notificarClientes('familia_eliminada', { idFamilia });
+  } catch (err) {
+    console.error(`Error eliminando familia:`, err.message);
+    return res.status(500).json({ 
+      error: 'Error eliminando familia', 
+      details: err.message 
     });
-  });
+  }
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  db.query('SELECT 1', (err) => {
-    if (err) {
-      return res.status(500).json({ 
-        status: 'error', 
-        database: 'disconnected',
-        message: err.message 
-      });
-    }
+app.get('/api/health', async (req, res) => {
+  try {
+    await db.query('SELECT 1');
     res.json({ 
       status: 'healthy', 
       database: 'connected',
       timestamp: new Date().toISOString() 
     });
-  });
+  } catch (err) {
+    return res.status(500).json({ 
+      status: 'error', 
+      database: 'disconnected',
+      message: err.message 
+    });
+  }
 });
 
 // ==========================================
@@ -895,7 +810,7 @@ app.get('/api/patients/:id/consultations', async (req, res) => {
       LIMIT 50
     `;
     
-    const [consultas] = await db.promise().query(query, [patientId]);
+    const [consultas] = await db.query(query, [patientId]);
     
     res.json({
       success: true,
@@ -928,8 +843,13 @@ app.get('/api/patients/:id/exams', async (req, res) => {
         e.tipoExamen,
         e.unidadMedida,
         e.valorReferencia,
+        ce.idConsulta,
         ce.fecha,
         ce.observacion,
+        ce.archivoNombre,
+        ce.archivoTipo,
+        ce.archivoFechaSubida,
+        ce.archivoSize,
         c.fechaIngreso as fechaConsulta,
         c.motivo as motivoConsulta
       FROM ConsultaExamen ce
@@ -940,7 +860,7 @@ app.get('/api/patients/:id/exams', async (req, res) => {
       LIMIT 50
     `;
     
-    const [examenes] = await db.promise().query(query, [patientId]);
+    const [examenes] = await db.query(query, [patientId]);
     
     res.json({
       success: true,
@@ -981,7 +901,7 @@ app.post('/api/patients/:id/exams', async (req, res) => {
     return res.status(400).json({ success: false, message: 'nombreExamen y tipoExamen son requeridos' });
   }
 
-  const conn = await db.promise().getConnection();
+  const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
@@ -1020,7 +940,7 @@ app.post('/api/patients/:id/exams', async (req, res) => {
     // Recuperar datos combinados para respuesta
     let detalle = null;
     if (idConsulta) {
-      const [rows] = await db.promise().query(
+      const [rows] = await db.query(
         `SELECT e.idExamen, e.nombreExamen, e.tipoExamen, e.unidadMedida, e.valorReferencia,
                 ce.fecha, ce.observacion, c.idConsulta, c.motivo
          FROM Examen e
@@ -1030,7 +950,7 @@ app.post('/api/patients/:id/exams', async (req, res) => {
       );
       detalle = rows[0];
     } else {
-      const [rows] = await db.promise().query(
+      const [rows] = await db.query(
         `SELECT e.idExamen, e.nombreExamen, e.tipoExamen, e.unidadMedida, e.valorReferencia
          FROM Examen e WHERE e.idExamen = ?`, [nuevoIdExamen]
       );
@@ -1057,7 +977,7 @@ app.post('/api/consultations/:id/exams', async (req, res) => {
   if (!nombreExamen || !tipoExamen) {
     return res.status(400).json({ success: false, message: 'nombreExamen y tipoExamen son requeridos' });
   }
-  const conn = await db.promise().getConnection();
+  const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
     // Validar consulta y paciente
@@ -1077,7 +997,7 @@ app.post('/api/consultations/:id/exams', async (req, res) => {
       [nuevoIdExamen, idConsulta, observacion || null]
     );
     await conn.commit();
-    const [rows] = await db.promise().query(
+    const [rows] = await db.query(
       `SELECT e.idExamen, e.nombreExamen, e.tipoExamen, e.unidadMedida, e.valorReferencia,
               ce.fecha, ce.observacion, c.idConsulta, c.motivo, c.idPaciente
        FROM Examen e
@@ -1123,7 +1043,7 @@ app.get('/api/patients/:id/diagnostics', async (req, res) => {
       LIMIT 50
     `;
     
-    const [diagnosticos] = await db.promise().query(query, [patientId]);
+    const [diagnosticos] = await db.query(query, [patientId]);
     
     res.json({
       success: true,
@@ -1170,7 +1090,7 @@ app.get('/api/patients/:id/procedures', async (req, res) => {
       LIMIT 50
     `;
     
-    const [procedimientos] = await db.promise().query(query, [patientId]);
+    const [procedimientos] = await db.query(query, [patientId]);
     
     res.json({
       success: true,
@@ -1208,7 +1128,7 @@ app.get('/api/patients/:id/allergies', async (req, res) => {
       ORDER BY ap.fechaRegistro DESC
     `;
     
-    const [alergias] = await db.promise().query(query, [patientId]);
+    const [alergias] = await db.query(query, [patientId]);
     
     res.json({
       success: true,
@@ -1245,7 +1165,7 @@ app.get('/api/patients/:id/habits', async (req, res) => {
       ORDER BY h.habito ASC
     `;
     
-    const [habitos] = await db.promise().query(query, [patientId]);
+    const [habitos] = await db.query(query, [patientId]);
     
     res.json({
       success: true,
@@ -1285,7 +1205,7 @@ app.get('/api/patients/:id/vaccines', async (req, res) => {
       ORDER BY pv.fecha DESC
     `;
     
-    const [vacunas] = await db.promise().query(query, [patientId]);
+    const [vacunas] = await db.query(query, [patientId]);
     
     res.json({
       success: true,
@@ -1325,7 +1245,7 @@ app.get('/api/patients/:id/medicines', async (req, res) => {
       ORDER BY mcp.cronico DESC, mcp.fechaInicio DESC
     `;
     
-    const [medicamentos] = await db.promise().query(query, [patientId]);
+    const [medicamentos] = await db.query(query, [patientId]);
     
     res.json({
       success: true,
@@ -1354,22 +1274,22 @@ app.get('/api/patients/:id/medicines', async (req, res) => {
 app.get('/api/dashboard/stats', async (req, res) => {
   try {
     // Total de pacientes
-    const [totalPacientes] = await db.promise().query(
+    const [totalPacientes] = await db.query(
       'SELECT COUNT(*) as total FROM Paciente'
     );
 
     // Consultas de hoy
-    const [consultasHoy] = await db.promise().query(
+    const [consultasHoy] = await db.query(
       'SELECT COUNT(*) as total FROM Consulta WHERE DATE(fechaIngreso) = CURDATE()'
     );
 
     // Exámenes pendientes (últimos 30 días)
-    const [examenesPendientes] = await db.promise().query(
+    const [examenesPendientes] = await db.query(
       'SELECT COUNT(DISTINCT ce.idExamen) as total FROM ConsultaExamen ce WHERE ce.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)'
     );
 
     // Alertas (diagnósticos urgentes del último mes)
-    const [alertas] = await db.promise().query(
+    const [alertas] = await db.query(
       `SELECT COUNT(DISTINCT cd.idDiagnostico) as total 
        FROM ConsultaDiagnostico cd 
        INNER JOIN Consulta c ON cd.idConsulta = c.idConsulta
@@ -1378,7 +1298,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
     );
 
     // Pacientes por grupo sanguíneo
-    const [gruposSanguineos] = await db.promise().query(
+    const [gruposSanguineos] = await db.query(
       `SELECT tipoSangre, COUNT(*) as total 
        FROM Paciente 
        WHERE tipoSangre IS NOT NULL 
@@ -1387,7 +1307,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
     );
 
     // Consultas por tipo (últimos 30 días)
-    const [consultasPorTipo] = await db.promise().query(
+    const [consultasPorTipo] = await db.query(
       `SELECT tc.nombreTipoConsulta as tipo, COUNT(*) as total
        FROM Consulta c
        LEFT JOIN TipoConsulta tc ON c.idTipoConsulta = tc.idTipoConsulta
@@ -1398,7 +1318,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
     );
 
     // Últimas consultas
-    const [ultimasConsultas] = await db.promise().query(
+    const [ultimasConsultas] = await db.query(
       `SELECT 
         c.idConsulta,
         c.fechaIngreso,
@@ -1414,7 +1334,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
     );
 
     // Diagnósticos recientes urgentes
-    const [diagnosticosUrgentes] = await db.promise().query(
+    const [diagnosticosUrgentes] = await db.query(
       `SELECT 
         d.idDiagnostico,
         d.cie10,
@@ -1466,7 +1386,7 @@ app.get('/api/dashboard/paciente/:id', async (req, res) => {
   
   try {
     // 1. Métricas generales del paciente
-    const [metricasResult] = await db.promise().query(`
+    const [metricasResult] = await db.query(`
       SELECT 
         (SELECT COUNT(*) FROM Consulta WHERE idPaciente = ?) as totalConsultas,
         (SELECT COUNT(*) FROM Consulta WHERE idPaciente = ? AND fechaIngreso >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)) as consultasUltimos30Dias,
@@ -1477,7 +1397,7 @@ app.get('/api/dashboard/paciente/:id', async (req, res) => {
     `, [idPaciente, idPaciente, idPaciente, idPaciente]);
 
     // 2. Últimas 5 consultas
-    const [ultimasConsultas] = await db.promise().query(`
+    const [ultimasConsultas] = await db.query(`
       SELECT 
         c.idConsulta,
         c.fechaIngreso as fecha,
@@ -1494,7 +1414,7 @@ app.get('/api/dashboard/paciente/:id', async (req, res) => {
     `, [idPaciente]);
 
     // 3. Diagnósticos recientes (últimos 30 días)
-    const [diagnosticosRecientes] = await db.promise().query(`
+    const [diagnosticosRecientes] = await db.query(`
       SELECT 
         d.idDiagnostico,
         d.cie10 as nombreDiagnostico,
@@ -1514,7 +1434,7 @@ app.get('/api/dashboard/paciente/:id', async (req, res) => {
     `, [idPaciente]);
 
     // 4. Exámenes pendientes (últimos exámenes realizados)
-    const [examenesPendientes] = await db.promise().query(`
+    const [examenesPendientes] = await db.query(`
       SELECT 
         e.idExamen,
         e.nombreExamen,
@@ -1531,7 +1451,7 @@ app.get('/api/dashboard/paciente/:id', async (req, res) => {
     `, [idPaciente]);
 
     // 5. Medicamentos crónicos activos
-    const [medicamentosCronicos] = await db.promise().query(`
+    const [medicamentosCronicos] = await db.query(`
       SELECT 
         m.idMedicamento,
         m.nombreMedicamento,
@@ -1599,7 +1519,7 @@ app.put('/api/consultations/:id/exams/:examId/upload', async (req, res) => {
 
   try {
     // Validar que ConsultaExamen existe
-    const [existing] = await db.promise().query(
+    const [existing] = await db.query(
       'SELECT idExamen FROM ConsultaExamen WHERE idConsulta = ? AND idExamen = ?',
       [idConsulta, examId]
     );
@@ -1640,7 +1560,7 @@ app.put('/api/consultations/:id/exams/:examId/upload', async (req, res) => {
     }
 
     // Actualizar ConsultaExamen con archivo
-    await db.promise().query(
+    await db.query(
       `UPDATE ConsultaExamen 
        SET archivoNombre = ?, archivoTipo = ?, archivoBlob = ?, archivoSize = ?, archivoFechaSubida = NOW()
        WHERE idConsulta = ? AND idExamen = ?`,
@@ -1685,7 +1605,7 @@ app.get('/api/consultations/:id/exams/:examId/download', async (req, res) => {
   const { id: idConsulta, examId } = req.params;
 
   try {
-    const [result] = await db.promise().query(
+    const [result] = await db.query(
       'SELECT archivoNombre, archivoTipo, archivoBlob FROM ConsultaExamen WHERE idConsulta = ? AND idExamen = ?',
       [idConsulta, examId]
     );
@@ -1716,7 +1636,7 @@ app.post('/api/consultations/:id/exams/:examId/analyze', async (req, res) => {
 
   try {
     // Validar que el examen existe
-    const [examenCheck] = await db.promise().query(
+    const [examenCheck] = await db.query(
       'SELECT idExamen FROM ConsultaExamen WHERE idConsulta = ? AND idExamen = ?',
       [idConsulta, examId]
     );
@@ -1843,7 +1763,7 @@ app.put('/api/consultations/:id/exams/:examId/apply-suggestions', async (req, re
 
   try {
     // Validar que el examen existe
-    const [examenCheck] = await db.promise().query(
+    const [examenCheck] = await db.query(
       'SELECT observacion FROM ConsultaExamen WHERE idConsulta = ? AND idExamen = ?',
       [idConsulta, examId]
     );
@@ -1863,7 +1783,7 @@ app.put('/api/consultations/:id/exams/:examId/apply-suggestions', async (req, re
     const observacionNueva = `[Textract-Aplicado] ${sugerenciasTexto}`;
 
     // Actualizar ConsultaExamen.observacion
-    await db.promise().query(
+    await db.query(
       `UPDATE ConsultaExamen 
        SET observacion = ?, updated_at = NOW()
        WHERE idConsulta = ? AND idExamen = ?`,
@@ -1873,7 +1793,7 @@ app.put('/api/consultations/:id/exams/:examId/apply-suggestions', async (req, re
     // También actualizar el examen principal si hay campos relevantes
     const camposExamen = extraerCamposExamen(sugerenciasAplicadas);
     if (Object.keys(camposExamen).length > 0) {
-      await db.promise().query(
+      await db.query(
         `UPDATE Examen 
          SET nombreExamen = COALESCE(?, nombreExamen),
              tipoExamen = COALESCE(?, tipoExamen),
@@ -2071,7 +1991,7 @@ app.get('/api/dashboard/recent-patients', async (req, res) => {
       LIMIT ?
     `;
     
-    const [pacientes] = await db.promise().query(query, [parseInt(limit)]);
+    const [pacientes] = await db.query(query, [parseInt(limit)]);
     
     res.json({
       success: true,
@@ -2103,7 +2023,7 @@ process.on('unhandledRejection', (err) => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('\nApagando servidor...');
   
   // Cerrar clientes SSE
@@ -2116,13 +2036,13 @@ process.on('SIGTERM', () => {
   });
   
   // Cerrar pool de conexiones
-  db.end((err) => {
-    if (err) {
-      console.error('Error cerrando pool BD:', err.message);
-    }
+  try {
+    await db.end();
     console.log('Servidor cerrado correctamente');
-    process.exit(0);
-  });
+  } catch (err) {
+    console.error('Error cerrando pool BD:', err.message);
+  }
+  process.exit(0);
 });
 
 const PORT = 3001;

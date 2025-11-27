@@ -17,12 +17,19 @@
   }
 
   .options-section {
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+
     .option-card {
       display: flex;
       align-items: center;
       gap: 12px;
       cursor: pointer;
-      margin-bottom: 12px;
+      margin: 0;
       transition: transform 0.2s, box-shadow 0.2s;
 
       &:active {
@@ -104,6 +111,14 @@
 
     .examen-card {
       margin-bottom: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &.active {
+        border-color: #667eea;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+      }
 
       ion-card-title {
         display: flex;
@@ -166,6 +181,120 @@
     p {
       color: #6b7280;
       font-size: 14px;
+    }
+  }
+
+  .detail-section {
+    margin-top: 20px;
+
+    .detail-card {
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .detail-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+
+      div {
+        flex: 1 1 160px;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #9ca3af;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+      }
+
+      p {
+        margin: 0;
+        color: #111827;
+        font-weight: 600;
+      }
+    }
+
+    .detail-notes {
+      margin-bottom: 16px;
+
+      label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #9ca3af;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.5;
+        color: #374151;
+      }
+    }
+
+    .detail-results {
+      margin-bottom: 16px;
+
+      label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #9ca3af;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+      }
+
+      .result-row {
+        display: grid;
+        grid-template-columns: 2fr 1.2fr 1fr;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+
+        .parametro {
+          font-weight: 600;
+          color: #111827;
+        }
+
+        .valor {
+          color: #1f2937;
+        }
+
+        .referencia {
+          color: #6b7280;
+          font-size: 12px;
+          text-align: right;
+        }
+      }
+    }
+
+    .detail-files {
+      margin-bottom: 16px;
+
+      label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #9ca3af;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+      }
+
+      .file-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+
+        .file-meta {
+          color: #6b7280;
+          font-size: 13px;
+        }
+      }
     }
   }
 }

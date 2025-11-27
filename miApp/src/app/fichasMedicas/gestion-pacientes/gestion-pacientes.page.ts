@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton,    
@@ -12,12 +12,13 @@ import { addIcons } from 'ionicons';
 import { 
   arrowBack, refresh, person, add, personAdd, people, medical,
   search, alertCircle, checkmarkCircle, time, informationCircle, chevronForward,
-  personCircle, personAddOutline, pencil, trashOutline
-} from 'ionicons/icons';
+  personCircle, personAddOutline, pencil, trashOutline, peopleOutline, searchOutline, home, document, settings } from 'ionicons/icons';
 
 import { BusquedaPacientesComponent } from '../../../compartidos/componentes/busqueda-pacientes/busqueda-pacientes.component';
 import { PacientesService, Paciente } from '../../../core/servicios/pacientes.service';
 import { FamiliaService, Familia } from '../../../core/servicios/familias.service';
+import { FamiliasRealtimeService } from '../../../core/servicios/familias-realtime.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-gestion-pacientes',
@@ -34,7 +35,7 @@ import { FamiliaService, Familia } from '../../../core/servicios/familias.servic
     BusquedaPacientesComponent
   ]
 })
-export class GestionPacientesPage implements OnInit {
+export class GestionPacientesPage implements OnInit, OnDestroy {
   @ViewChild(IonContent) ionContent!: IonContent;
   
   familias: Familia[] = [];
@@ -56,24 +57,24 @@ export class GestionPacientesPage implements OnInit {
   };
 
   private inicializado = false;
+  private familiasSyncSub?: Subscription;
+  private realtimeSub?: Subscription;
 
   constructor(
     private familiaService: FamiliaService,
+    private familiaRealtimeService: FamiliasRealtimeService,
     private pacientesService: PacientesService,
     private router: Router,
     private alertController: AlertController,
     private toastController: ToastController
   ) {
-    addIcons({ 
-      arrowBack, refresh, person, add, personAdd, people, medical,
-      search, alertCircle, checkmarkCircle, time, informationCircle,
-      chevronForward, personCircle, personAddOutline, pencil, trashOutline
-    });
+    addIcons({refresh,people,person,alertCircle,time,checkmarkCircle,informationCircle,pencil,trashOutline,personCircle,peopleOutline,personAddOutline,personAdd,searchOutline,home,document,add,settings,arrowBack,medical,search,chevronForward});
   }
 
   ngOnInit() {
     console.log('GestionPacientesPage - ngOnInit - Carga inicial');
     this.cargarDatosIniciales();
+    this.suscribirseACambiosTiempoReal();
   }
 
   ionViewWillEnter() {
@@ -115,10 +116,15 @@ export class GestionPacientesPage implements OnInit {
   }
 
   cargarFamiliasYMiembros() {
-    console.log('Cargando familias y miembros...');
-    this.familiaService.getFamiliasPorPaciente(this.pacienteActualId).subscribe({
+    console.log('Cargando familias y miembros con sincronización en tiempo real...');
+    
+    if (this.familiasSyncSub) {
+      this.familiasSyncSub.unsubscribe();
+    }
+
+    this.familiasSyncSub = this.familiaRealtimeService.getFamiliasConSync(this.pacienteActualId).subscribe({
       next: (familias) => {
-        console.log('Familias encontradas:', familias);
+        console.log('Familias encontradas (sync):', familias);
         
         if (!familias || familias.length === 0) {
           console.log('No hay familias, creando familia única...');
@@ -133,6 +139,17 @@ export class GestionPacientesPage implements OnInit {
         this.error = 'Error al cargar el grupo familiar';
         this.cargando = false;
       }
+    });
+  }
+
+  private suscribirseACambiosTiempoReal() {
+    if (this.realtimeSub) {
+      return;
+    }
+
+    this.realtimeSub = this.familiaRealtimeService.familiasChanged$.subscribe(cambio => {
+      console.log('Cambio detectado en familias:', cambio.evento);
+      this.cargarFamiliasYMiembros();
     });
   }
 
@@ -294,7 +311,11 @@ export class GestionPacientesPage implements OnInit {
   onPacienteSeleccionado(paciente: Paciente) {
     console.log('Paciente seleccionado:', paciente.idPaciente);
     this.router.navigate(['/fichas/verFicha', paciente.idPaciente], {
-      replaceUrl: false
+      replaceUrl: false,
+      state: { 
+        pacienteActualId: this.pacienteActualId,
+        pacienteActualNombre: this.pacienteActualNombre
+      }
     }).then(() => {
       // Scroll al top después de navegar - CORREGIDO
       setTimeout(() => {
@@ -320,8 +341,80 @@ export class GestionPacientesPage implements OnInit {
     });
   }
 
-  onAgregarFamilia() {
-    console.log('Agregar nueva familia - Función no implementada aún');
+  async onAgregarFamilia() {
+    console.log('Agregar nueva familia');
+    
+    const alert = await this.alertController.create({
+      header: 'Nueva Familia',
+      message: 'Crea un nuevo grupo familiar',
+      inputs: [
+        {
+          name: 'nombre',
+          type: 'text',
+          placeholder: 'Nombre de la familia',
+          attributes: {
+            required: true
+          }
+        },
+        {
+          name: 'descripcion',
+          type: 'text',
+          placeholder: 'Descripción (opcional)'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Crear',
+          handler: async (data) => {
+            if (!data.nombre || data.nombre.trim() === '') {
+              await this.mostrarToast('El nombre de la familia es requerido', 'warning');
+              return false;
+            }
+            
+            this.familiaService.crearFamilia({
+              nombre: data.nombre.trim(),
+              descripcion: data.descripcion?.trim() || '',
+              idOwner: this.pacienteActualId
+            }).subscribe({
+              next: async (nuevaFamilia) => {
+                console.log('Familia creada:', nuevaFamilia);
+                
+                // Agregar al propietario (paciente 1) como administrador
+                this.familiaService.agregarMiembro(
+                  nuevaFamilia.idFamilia,
+                  this.pacienteActualId,
+                  'administrador',
+                  this.pacienteActualId
+                ).subscribe({
+                  next: async () => {
+                    console.log('Propietario agregado a la familia como administrador');
+                    await this.mostrarToast('Familia creada exitosamente', 'success');
+                    this.familiaRealtimeService.notifyFamiliaCreada(nuevaFamilia);
+                    this.cargarDatosIniciales();
+                  },
+                  error: async (err) => {
+                    console.warn('Propietario ya estaba en la familia:', err);
+                    await this.mostrarToast('Familia creada (propietario ya estaba)', 'success');
+                    this.cargarDatosIniciales();
+                  }
+                });
+              },
+              error: async (err) => {
+                console.error('Error al crear familia:', err);
+                await this.mostrarToast('Error al crear la familia', 'danger');
+              }
+            });
+            return true;
+          }
+        }
+      ]
+    });
+    
+    await alert.present();
   }
 
   onVerTodasFamilias() {
@@ -334,6 +427,11 @@ export class GestionPacientesPage implements OnInit {
 
   trackByMiembroId(index: number, miembro: any): number {
     return miembro.idPaciente || index;
+  }
+
+  ngOnDestroy() {
+    this.familiasSyncSub?.unsubscribe();
+    this.realtimeSub?.unsubscribe();
   }
 
   async onEditarFamilia(familia: Familia) {
@@ -376,10 +474,12 @@ export class GestionPacientesPage implements OnInit {
               nombre: data.nombre.trim(),
               descripcion: data.descripcion?.trim() || undefined
             }).subscribe({
-              next: async () => {
+              next: async (familiaActualizada) => {
                 console.log('Familia actualizada');
                 await this.mostrarToast('Familia actualizada exitosamente', 'success');
-                // Recargar las familias
+                // Notificar cambios en tiempo real
+                this.familiaRealtimeService.notifyFamiliaActualizada(familiaActualizada);
+                // Recargar los datos
                 this.cargarDatosIniciales();
               },
               error: async (err) => {
@@ -416,6 +516,8 @@ export class GestionPacientesPage implements OnInit {
               next: async () => {
                 console.log('Familia eliminada');
                 await this.mostrarToast('Familia eliminada exitosamente', 'success');
+                // Notificar cambios en tiempo real
+                this.familiaRealtimeService.notifyFamiliaEliminada(familia.idFamilia, familia.idOwner);
                 // Recargar las familias
                 this.cargarDatosIniciales();
               },
@@ -429,6 +531,90 @@ export class GestionPacientesPage implements OnInit {
       ]
     });
     
+    await alert.present();
+  }
+
+  async onEditarRolMiembro(idFamilia: number, miembro: any) {
+    const rolesDisponibles = [
+      { value: 'familiar', label: 'Familiar' },
+      { value: 'hijo', label: 'Hijo/Hija' },
+      { value: 'padre', label: 'Padre/Madre' },
+      { value: 'pareja', label: 'Pareja' },
+      { value: 'tutor', label: 'Tutor' },
+      { value: 'administrador', label: 'Administrador' }
+    ];
+
+    const alert = await this.alertController.create({
+      header: 'Cambiar Rol del Miembro',
+      message: `Cambiar rol de ${miembro.paciente?.nombrePaciente}`,
+      inputs: rolesDisponibles.map(rol => ({
+        name: 'rol',
+        type: 'radio',
+        label: rol.label,
+        value: rol.value,
+        checked: miembro.rol === rol.value
+      })),
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Guardar',
+          handler: (nuevoRol) => {
+            if (nuevoRol === miembro.rol) {
+              return;
+            }
+            
+            this.familiaService.actualizarRolMiembro(idFamilia, miembro.idPaciente, nuevoRol).subscribe({
+              next: async () => {
+                console.log('Rol actualizado:', nuevoRol);
+                miembro.rol = nuevoRol;
+                await this.mostrarToast(`Rol actualizado a "${nuevoRol}"`, 'success');
+                this.familiaRealtimeService.notifyFamiliaActualizada({ ...this.familias.find(f => f.idFamilia === idFamilia), miembros: [] } as any);
+              },
+              error: async (err) => {
+                console.error('Error actualizando rol:', err);
+                await this.mostrarToast('Error al actualizar el rol', 'danger');
+              }
+            });
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async onEliminarMiembroDeFamilia(idFamilia: number, miembro: any) {
+    const alert = await this.alertController.create({
+      header: 'Eliminar Miembro',
+      message: `¿Estás seguro de que deseas eliminar a ${miembro.paciente?.nombrePaciente} de esta familia?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: async () => {
+            this.familiaService.eliminarMiembro(idFamilia, miembro.idPaciente).subscribe({
+              next: async () => {
+                console.log('Miembro eliminado');
+                await this.mostrarToast('Miembro eliminado exitosamente', 'success');
+                this.cargarDatosIniciales();
+              },
+              error: async (err) => {
+                console.error('Error eliminando miembro:', err);
+                await this.mostrarToast('Error al eliminar el miembro', 'danger');
+              }
+            });
+          }
+        }
+      ]
+    });
+
     await alert.present();
   }
 

@@ -30,6 +30,7 @@ export class CrearPaciente {
   //paciente actual (temporal: ID 1)
   pacienteActualId = 1;
   pacienteActualNombre = 'Paciente Principal';
+  familiaIdSeleccionada?: number;
   
   mostrarToast = false;
   mensajeToast = '';
@@ -44,6 +45,19 @@ export class CrearPaciente {
   }
 
   ngOnInit() {
+    // Obtener familiaId del estado de navegación
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras?.state?.['familiaId']) {
+      this.familiaIdSeleccionada = navigation.extras.state['familiaId'];
+      console.log('Familia seleccionada para agregar miembro:', this.familiaIdSeleccionada);
+    } else {
+      const state = (window.history.state as any);
+      if (state?.familiaId) {
+        this.familiaIdSeleccionada = state.familiaId;
+        console.log('Familia seleccionada (desde history):', this.familiaIdSeleccionada);
+      }
+    }
+
     // Cargar nombre del paciente actual
     this.pacientesService.getPacienteById(this.pacienteActualId).subscribe({
       next: (paciente) => {
@@ -75,6 +89,13 @@ export class CrearPaciente {
 
   private obtenerOCrearFamiliaUnica(): Promise<number> {
     return new Promise((resolve, reject) => {
+      // Si ya tenemos una familia seleccionada, usarla
+      if (this.familiaIdSeleccionada) {
+        console.log('Usando familia seleccionada:', this.familiaIdSeleccionada);
+        resolve(this.familiaIdSeleccionada);
+        return;
+      }
+
       console.log('Obteniendo familias del paciente:', this.pacienteActualId);
       this.familiaService.getFamiliasPorPaciente(this.pacienteActualId).subscribe({
         next: (familias) => {
@@ -147,10 +168,11 @@ export class CrearPaciente {
     const rol = (paciente as any).rolFamiliar || 'familiar';
 
     console.log('DEBUG - Agregando miembro:');
-    console.log('  - Familia ID:', familiaId);
-    console.log('  - Paciente ID:', paciente.idPaciente);
-    console.log('  - Rol:', rol);
-    console.log('  - Paciente actual (owner):', this.pacienteActualId);
+    console.log('  Familia ID:', familiaId);
+    console.log('  Paciente ID:', paciente.idPaciente);
+    console.log('  Paciente nombre:', paciente.nombrePaciente);
+    console.log('  Rol:', rol);
+    console.log('  Paciente actual (owner):', this.pacienteActualId);
 
     this.familiaService.agregarMiembro(
       familiaId, 
@@ -159,7 +181,7 @@ export class CrearPaciente {
       this.pacienteActualId
     ).subscribe({
       next: (response) => {
-        console.log('DEBUG - Respuesta del servidor:', response);
+        console.log('Respuesta del servidor:', response);
         console.log('Paciente agregado al grupo familiar:', response);
         this.mostrarMensaje(`Paciente creado y agregado como ${rol}`, 'success');
         
@@ -168,9 +190,13 @@ export class CrearPaciente {
         }, 800);
       },
       error: (err) => {
-        console.error('DEBUG - Error al agregar miembro:', err);
-        console.error('Error al agregar miembro a familia:', err);
-        const mensajeError = err?.error?.message || 'Error al vincular al grupo familiar';
+        console.error('Error al agregar miembro:', err);
+        console.error('Detalles del error:');
+        console.error('   - Status:', err?.status);
+        console.error('   - Message:', err?.message);
+        console.error('   - Error body:', err?.error);
+        
+        const mensajeError = err?.error?.message || err?.error?.error || 'Error desconocido';
         this.mostrarMensaje(`Paciente creado, pero ${mensajeError.toLowerCase()}`, 'error');
         
         setTimeout(() => {

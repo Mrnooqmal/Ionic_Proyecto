@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { 
@@ -17,6 +17,8 @@ import {
 } from 'ionicons/icons';
 import { DashboardService, DashboardPacienteStats } from '../../core/servicios/dashboard.service';
 import { PacientesService, Paciente } from '../../core/servicios/pacientes.service';
+import { FamiliasRealtimeService } from '../../core/servicios/familias-realtime.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,7 +32,7 @@ import { PacientesService, Paciente } from '../../core/servicios/pacientes.servi
     IonContent, IonIcon, IonChip, IonLabel, IonBadge
   ]
 })
-export class HomeDashboardPage implements OnInit {
+export class HomeDashboardPage implements OnInit, OnDestroy {
   cargando = true;
   error = false;
   
@@ -48,11 +50,13 @@ export class HomeDashboardPage implements OnInit {
   };
 
   estadisticas: DashboardPacienteStats | null = null;
+  private familiaRealtimeSub?: Subscription;
 
   constructor(
     private router: Router,
     private dashboardService: DashboardService,
-    private pacientesService: PacientesService
+    private pacientesService: PacientesService,
+    private familiasRealtimeService: FamiliasRealtimeService
   ) {
     addIcons({ 
       home, person, heart, pulse, thermometer, scale,
@@ -66,6 +70,7 @@ export class HomeDashboardPage implements OnInit {
 
   ngOnInit() {
     this.cargarDatos();
+    this.suscribirseCambiosFamilia();
   }
 
   async cargarDatos() {
@@ -155,5 +160,18 @@ export class HomeDashboardPage implements OnInit {
   getConsultasPorcentaje(): number {
     if (this.metricas.totalConsultas === 0) return 0;
     return Math.min((this.metricas.consultasUltimos30Dias / this.metricas.totalConsultas) * 100, 100);
+  }
+
+  ngOnDestroy() {
+    this.familiaRealtimeSub?.unsubscribe();
+  }
+
+  private suscribirseCambiosFamilia() {
+    if (this.familiaRealtimeSub) {
+      return;
+    }
+    this.familiaRealtimeSub = this.familiasRealtimeService.familiasChanged$.subscribe(() => {
+      this.cargarDatos();
+    });
   }
 }

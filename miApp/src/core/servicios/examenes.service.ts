@@ -15,12 +15,17 @@ export interface ResultadoExamen {
 export interface Examen {
   idExamen: number;
   idPaciente: number;
+  idConsulta?: number;
+  nombreExamen?: string;
   tipoExamen: string;
   fechaExamen: string;
   laboratorio?: string;
   resultados: ResultadoExamen[];
   notas?: string;
   archivos?: string[];
+  archivoTipo?: string;
+  archivoFechaSubida?: string;
+  archivoSize?: number;
   estado: 'pendiente' | 'completado' | 'anulado';
   created_at?: string;
   updated_at?: string;
@@ -52,7 +57,7 @@ export class ExamenesService extends BaseMysqlService {
    */
   getExamenesPaciente(pacienteId: number): Observable<Examen[]> {
     return this.get<any>(`patients/${pacienteId}/exams`).pipe(
-      map(resp => resp?.data ?? resp ?? []),
+      map(resp => (resp?.data ?? resp ?? []).map((raw: any) => this.adaptarExamen(raw, pacienteId))),
       tap((examenes: Examen[]) => {
         this.examenesSubject.next(examenes);
       }),
@@ -100,16 +105,7 @@ export class ExamenesService extends BaseMysqlService {
     return this.post<any>(`patients/${pacienteId}/exams`, data).pipe(
       map(resp => resp?.data ?? resp),
       tap((nuevo: any) => {
-        // Intentar adaptar al modelo Examen si es posible
-        const adaptado: Examen = {
-          idExamen: nuevo.idExamen,
-          idPaciente: pacienteId,
-          tipoExamen: nuevo.tipoExamen,
-          fechaExamen: nuevo.fecha || nuevo.fechaConsulta || new Date().toISOString(),
-          resultados: [],
-          notas: nuevo.observacion || '',
-          estado: 'pendiente'
-        } as any;
+        const adaptado = this.adaptarExamen(nuevo, pacienteId);
         const actuales = this.examenesSubject.value;
         this.examenesSubject.next([...actuales, adaptado]);
       }),
@@ -219,5 +215,26 @@ export class ExamenesService extends BaseMysqlService {
       `${this.baseUrl.replace(/\/$/, '')}/exams/${examenId}/download/${nombreArchivo}`,
       { responseType: 'blob' }
     );
+  }
+
+  private adaptarExamen(raw: any, pacienteId?: number): Examen {
+    return {
+      idExamen: raw.idExamen,
+      idPaciente: pacienteId ?? raw.idPaciente ?? 0,
+      idConsulta: raw.idConsulta,
+      nombreExamen: raw.nombreExamen,
+      tipoExamen: raw.tipoExamen || raw.nombreExamen || 'Examen',
+      fechaExamen: raw.fecha || raw.fechaExamen || raw.fechaConsulta || new Date().toISOString(),
+      laboratorio: raw.laboratorio || raw.motivoConsulta || raw.nombreExamen,
+      resultados: raw.resultados || [],
+      notas: raw.observacion || raw.notas || '',
+      archivos: raw.archivoNombre ? [raw.archivoNombre] : [],
+      archivoTipo: raw.archivoTipo,
+      archivoFechaSubida: raw.archivoFechaSubida,
+      archivoSize: raw.archivoSize,
+      estado: raw.estado || 'completado',
+      created_at: raw.created_at,
+      updated_at: raw.updated_at
+    };
   }
 }

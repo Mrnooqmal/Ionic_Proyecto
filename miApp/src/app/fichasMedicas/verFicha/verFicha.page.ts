@@ -55,7 +55,22 @@ export class VerFichaPage implements OnInit {
 
   ngOnInit() {
     this.fichaId = this.route.snapshot.paramMap.get('id') || '1';
+    
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras?.state?.['pacienteActualId']) {
+      this.pacienteActualId = navigation.extras.state['pacienteActualId'];
+    } else {
+      const state = (window.history.state as any);
+      if (state?.['pacienteActualId']) {
+        this.pacienteActualId = state['pacienteActualId'];
+      }
+    }
+    
     console.log('Viendo ficha ID:', this.fichaId);
+    console.log('Paciente actual ID:', this.pacienteActualId);
+  }
+
+  ionViewWillEnter() {
     this.cargarFicha();
   }
 
@@ -190,8 +205,8 @@ export class VerFichaPage implements OnInit {
 
   async eliminarDelGrupoFamiliar() {
     const alert = await this.alertController.create({
-      header: 'Eliminar del grupo familiar',
-      message: `¿Estás seguro de que deseas eliminar a ${this.ficha.paciente.nombrePaciente} del grupo familiar? Esta acción no se puede deshacer.`,
+      header: 'Eliminar paciente',
+      message: `¿Estás seguro de que deseas eliminar a ${this.ficha.paciente.nombrePaciente}? Esta acción no se puede deshacer.`,
       buttons: [
         {
           text: 'Cancelar',
@@ -213,57 +228,15 @@ export class VerFichaPage implements OnInit {
 
   private async confirmarEliminacion() {
     try {
-      // Obtener las familias del PACIENTE ACTUAL (el dueño)
-      this.familiaService.getFamiliasPorPaciente(this.pacienteActualId).subscribe({
-        next: async (familias: any) => {
-          const familiasArray = familias.data || [];
-          
-          console.log('Familias obtenidas:', familiasArray);
-          console.log('Buscando paciente a eliminar con ID:', this.fichaId);
-          
-          if (familiasArray.length === 0) {
-            console.error('No se encontraron familias del paciente actual');
-            await this.mostrarToast('No se encontró ninguna familia', 'warning');
-            return;
-          }
-
-          // Buscar la familia que contiene al paciente a eliminar
-          let familiaEncontrada = null;
-          for (const familia of familiasArray) {
-            console.log(`Verificando familia ${familia.idFamilia}: ${familia.miembros?.length || 0} miembros`);
-            if (familia.miembros && familia.miembros.length > 0) {
-              const miembro = familia.miembros.find((m: any) => m.idPaciente === parseInt(this.fichaId));
-              if (miembro) {
-                console.log(`Paciente encontrado en familia ${familia.idFamilia}`);
-                familiaEncontrada = familia;
-                break;
-              }
-            }
-          }
-
-          if (!familiaEncontrada) {
-            console.error('El paciente no está en ninguna familia del usuario actual');
-            await this.mostrarToast('El paciente no está en tu grupo familiar', 'warning');
-            return;
-          }
-
-          // Eliminar el miembro de la familia
-          this.familiaService.eliminarMiembro(familiaEncontrada.idFamilia, parseInt(this.fichaId)).subscribe({
-            next: async () => {
-              console.log('Miembro eliminado exitosamente');
-              await this.mostrarToast('Paciente eliminado del grupo familiar exitosamente', 'success');
-              // Volver a la página de gestión de pacientes
-              this.router.navigate(['/gestion-pacientes']);
-            },
-            error: async (err) => {
-              console.error('Error eliminando miembro:', err);
-              await this.mostrarToast('Error al eliminar del grupo familiar', 'danger');
-            }
-          });
+      this.pacientesService.eliminarPaciente(parseInt(this.fichaId)).subscribe({
+        next: async () => {
+          console.log('Paciente eliminado exitosamente');
+          await this.mostrarToast('Paciente eliminado exitosamente', 'success');
+          this.router.navigate(['/gestion-pacientes']);
         },
         error: async (err) => {
-          console.error('Error obteniendo familias:', err);
-          await this.mostrarToast('Error al verificar la familia', 'danger');
+          console.error('Error eliminando paciente:', err);
+          await this.mostrarToast('Error al eliminar paciente', 'danger');
         }
       });
     } catch (error) {

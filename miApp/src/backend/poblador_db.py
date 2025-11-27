@@ -258,7 +258,7 @@ class MediTrackPopulator:
             self.cursor.execute("SELECT idProfesionalSalud FROM ProfesionalSalud")
             self.ids_cache['profesionales'] = [row[0] for row in self.cursor.fetchall()]
         
-        print("✅ Tablas base pobladas exitosamente")
+        print("Tablas base pobladas exitosamente")
     
     def populate_pacientes(self):
         """Poblar tabla Paciente"""
@@ -267,7 +267,7 @@ class MediTrackPopulator:
         if self.check_existing_data('Paciente') and len(self.ids_cache.get('pacientes', [])) >= TOTAL_PACIENTES:
             self.cursor.execute("SELECT idPaciente FROM Paciente")
             self.ids_cache['pacientes'] = [row[0] for row in self.cursor.fetchall()]
-            print(f"✅ Paciente: Ya existen {len(self.ids_cache['pacientes'])} registros")
+            print(f"Paciente: Ya existen {len(self.ids_cache['pacientes'])} registros")
             return
         
         start_id_paciente = self.get_max_id('Paciente', 'idPaciente') + 1
@@ -320,7 +320,7 @@ class MediTrackPopulator:
         print("="*50)
         
         if not self.ids_cache.get('pacientes'):
-            print("❌ No hay pacientes para crear relaciones")
+            print("No hay pacientes para crear relaciones")
             return
         
         # AlergiaPaciente
@@ -463,7 +463,7 @@ class MediTrackPopulator:
         print("="*50)
         
         if not self.ids_cache.get('pacientes'):
-            print("❌ No hay pacientes para crear familias")
+            print("No hay pacientes para crear familias")
             return
         
         # Obtener información de pacientes para crear familias coherentes
@@ -485,7 +485,7 @@ class MediTrackPopulator:
                 pacientes_adultos.append(paciente_id)
         
         if not pacientes_adultos:
-            print("❌ No hay pacientes adultos para crear familias")
+            print("No hay pacientes adultos para crear familias")
             return
         
         familias_creadas = min(TOTAL_FAMILIAS, len(pacientes_adultos) // 2)
@@ -590,7 +590,7 @@ class MediTrackPopulator:
         print("="*50)
         
         if not all(k in self.ids_cache for k in ['pacientes', 'profesionales', 'tipos_consulta']):
-            print("❌ Faltan datos base para crear consultas")
+            print("Faltan datos base para crear consultas")
             return
         
         # Primero poblar Diagnostico si no existe

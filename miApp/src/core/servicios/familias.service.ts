@@ -47,8 +47,18 @@ export class FamiliaService {
   }
 
   agregarMiembro(idFamilia: number, idPaciente: number, rol: string, idOwner?: number): Observable<any> {
+    console.log('FamiliaService.agregarMiembro - Familia:', idFamilia, 'Paciente:', idPaciente, 'Rol:', rol);
     return this.http.post<any>(`${this.baseUrl}/${idFamilia}/miembros`, {
       idPaciente,
+      rol
+    }).pipe(
+      map(res => res.data || res)
+    );
+  }
+
+  actualizarRolMiembro(idFamilia: number, idPaciente: number, rol: string): Observable<any> {
+    console.log('FamiliaService.actualizarRolMiembro - Familia:', idFamilia, 'Paciente:', idPaciente, 'Nuevo rol:', rol);
+    return this.http.put<any>(`${this.baseUrl}/${idFamilia}/miembros/${idPaciente}`, {
       rol
     }).pipe(
       map(res => res.data || res)

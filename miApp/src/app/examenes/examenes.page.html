@@ -17,29 +17,31 @@
     <div class="options-section">
       <h2>¿Cómo quieres registrar un examen?</h2>
 
-      <ion-card class="option-card" routerLink="/examenes/crear" button>
-        <div class="card-icon">
-          <ion-icon name="add-circle"></ion-icon>
-        </div>
-        <ion-card-header>
-          <ion-card-title>Ingresar manualmente</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          Completa un formulario con los datos del examen.
-        </ion-card-content>
-      </ion-card>
+      <div class="options-grid">
+        <ion-card class="option-card" routerLink="/examenes/crear" button>
+          <div class="card-icon">
+            <ion-icon name="add-circle"></ion-icon>
+          </div>
+          <ion-card-header>
+            <ion-card-title>Ingresar manualmente</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            Completa un formulario con los datos del examen.
+          </ion-card-content>
+        </ion-card>
 
-      <ion-card class="option-card" routerLink="/examenes/cargar" button>
-        <div class="card-icon">
-          <ion-icon name="image"></ion-icon>
-        </div>
-        <ion-card-header>
-          <ion-card-title>Cargar archivo o foto</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          Sube una imagen o PDF del resultado.
-        </ion-card-content>
-      </ion-card>
+        <ion-card class="option-card" routerLink="/examenes/cargar" button>
+          <div class="card-icon">
+            <ion-icon name="image"></ion-icon>
+          </div>
+          <ion-card-header>
+            <ion-card-title>Cargar archivo o foto</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            Sube una imagen o PDF del resultado.
+          </ion-card-content>
+        </ion-card>
+      </div>
     </div>
 
     <!-- Listado de exámenes -->
@@ -66,7 +68,7 @@
       }
 
       @for (examen of examenes; track examen.idExamen) {
-        <ion-card class="examen-card">
+        <ion-card class="examen-card" (click)="verDetalle(examen)" [class.active]="selectedExamen?.idExamen === examen.idExamen">
           <ion-card-header>
             <ion-card-title>
               <ion-icon name="flask"></ion-icon>
@@ -92,6 +94,63 @@
           </ion-card-content>
         </ion-card>
       }
+    </div>
+
+    <div class="detail-section" *ngIf="selectedExamen">
+      <ion-card class="detail-card">
+        <ion-card-header>
+          <ion-card-title>
+            {{ selectedExamen.nombreExamen || selectedExamen.tipoExamen }}
+          </ion-card-title>
+          <ion-card-subtitle>
+            {{ selectedExamen.fechaExamen | date:'fullDate' }}
+          </ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="detail-meta">
+            <div>
+              <label>Tipo</label>
+              <p>{{ selectedExamen.tipoExamen }}</p>
+            </div>
+            <div>
+              <label>Estado</label>
+              <ion-chip [color]="selectedExamen.estado === 'completado' ? 'success' : selectedExamen.estado === 'pendiente' ? 'warning' : 'medium'">
+                <ion-icon [name]="getResultadoIcon(selectedExamen.estado)"></ion-icon>
+                <ion-label>{{ selectedExamen.estado }}</ion-label>
+              </ion-chip>
+            </div>
+          </div>
+
+          <div class="detail-notes" *ngIf="selectedExamen.notas">
+            <label>Notas</label>
+            <p>{{ selectedExamen.notas }}</p>
+          </div>
+
+          <div class="detail-results" *ngIf="selectedExamen.resultados?.length">
+            <label>Resultados</label>
+            <div class="result-row" *ngFor="let resultado of selectedExamen.resultados">
+              <span class="parametro">{{ resultado.parametro }}</span>
+              <span class="valor">{{ resultado.valor }} {{ resultado.unidad }}</span>
+              <span class="referencia">{{ resultado.valorNormal }}</span>
+            </div>
+          </div>
+
+          <div class="detail-files" *ngIf="tieneAdjunto(selectedExamen)">
+            <label>Adjunto</label>
+            <div class="file-actions">
+              <ion-button size="small" (click)="descargarAdjunto(selectedExamen)" [disabled]="descargando">
+                <ion-icon name="download" slot="start"></ion-icon>
+                Descargar archivo
+              </ion-button>
+              <span class="file-meta">{{ selectedExamen.archivos?.[0] }} · {{ selectedExamen.archivoTipo }}</span>
+            </div>
+          </div>
+
+          <ion-button expand="block" fill="clear" (click)="cerrarDetalle()">
+            Cerrar detalle
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
     </div>
 
     @if (cargando) {
