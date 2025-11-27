@@ -236,6 +236,55 @@
       }
     }
 
+    .detail-textract {
+      margin-bottom: 16px;
+
+      label {
+        display: block;
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #9ca3af;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+      }
+
+      .textract-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 8px;
+
+        .label {
+          display: block;
+          font-size: 11px;
+          text-transform: uppercase;
+          color: #9ca3af;
+          letter-spacing: 0.05em;
+        }
+
+        p {
+          margin: 4px 0 0;
+          font-weight: 600;
+          color: #111827;
+
+          small {
+            color: #6b7280;
+            margin-left: 4px;
+          }
+        }
+      }
+
+      .textract-note {
+        margin: 0;
+        font-size: 13px;
+        color: #4b5563;
+        line-height: 1.5;
+        background: #f3f4f6;
+        padding: 8px 12px;
+        border-radius: 8px;
+      }
+    }
+
     .detail-results {
       margin-bottom: 16px;
 

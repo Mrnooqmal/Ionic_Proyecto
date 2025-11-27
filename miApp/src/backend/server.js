@@ -843,6 +843,16 @@ app.get('/api/patients/:id/exams', async (req, res) => {
         e.tipoExamen,
         e.unidadMedida,
         e.valorReferencia,
+        e.resultadoPrincipal,
+        e.resultadoUnidad,
+        e.referenciaInferior,
+        e.referenciaSuperior,
+        e.observacionTextract,
+        e.textractTexto,
+        e.textractCampos,
+        e.textractTablas,
+        e.textractConfianza,
+        e.textractFecha,
         ce.idConsulta,
         ce.fecha,
         ce.observacion,
@@ -893,6 +903,11 @@ app.post('/api/patients/:id/exams', async (req, res) => {
     tipoExamen,
     unidadMedida,
     valorReferencia,
+    resultadoPrincipal,
+    resultadoUnidad,
+    referenciaInferior,
+    referenciaSuperior,
+    observacionTextract,
     idConsulta,
     observacion
   } = req.body;
@@ -922,8 +937,28 @@ app.post('/api/patients/:id/exams', async (req, res) => {
 
     // Insertar examen
     const [insertExamen] = await conn.query(
-      `INSERT INTO Examen (nombreExamen, tipoExamen, unidadMedida, valorReferencia) VALUES (?, ?, ?, ?)`,
-      [nombreExamen, tipoExamen, unidadMedida || null, valorReferencia || null]
+      `INSERT INTO Examen (
+        nombreExamen,
+        tipoExamen,
+        unidadMedida,
+        valorReferencia,
+        resultadoPrincipal,
+        resultadoUnidad,
+        referenciaInferior,
+        referenciaSuperior,
+        observacionTextract
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nombreExamen,
+        tipoExamen,
+        unidadMedida || null,
+        valorReferencia || null,
+        resultadoPrincipal || null,
+        resultadoUnidad || null,
+        referenciaInferior || null,
+        referenciaSuperior || null,
+        observacionTextract || null
+      ]
     );
     const nuevoIdExamen = insertExamen.insertId;
 
@@ -942,6 +977,9 @@ app.post('/api/patients/:id/exams', async (req, res) => {
     if (idConsulta) {
       const [rows] = await db.query(
         `SELECT e.idExamen, e.nombreExamen, e.tipoExamen, e.unidadMedida, e.valorReferencia,
+          e.resultadoPrincipal, e.resultadoUnidad, e.referenciaInferior, e.referenciaSuperior,
+          e.observacionTextract, e.textractTexto, e.textractCampos, e.textractTablas,
+          e.textractConfianza, e.textractFecha,
                 ce.fecha, ce.observacion, c.idConsulta, c.motivo
          FROM Examen e
          INNER JOIN ConsultaExamen ce ON e.idExamen = ce.idExamen
@@ -951,7 +989,10 @@ app.post('/api/patients/:id/exams', async (req, res) => {
       detalle = rows[0];
     } else {
       const [rows] = await db.query(
-        `SELECT e.idExamen, e.nombreExamen, e.tipoExamen, e.unidadMedida, e.valorReferencia
+        `SELECT e.idExamen, e.nombreExamen, e.tipoExamen, e.unidadMedida, e.valorReferencia,
+                e.resultadoPrincipal, e.resultadoUnidad, e.referenciaInferior, e.referenciaSuperior,
+                e.observacionTextract, e.textractTexto, e.textractCampos, e.textractTablas,
+                e.textractConfianza, e.textractFecha
          FROM Examen e WHERE e.idExamen = ?`, [nuevoIdExamen]
       );
       detalle = rows[0];
@@ -973,7 +1014,18 @@ app.post('/api/patients/:id/exams', async (req, res) => {
  */
 app.post('/api/consultations/:id/exams', async (req, res) => {
   const idConsulta = req.params.id;
-  const { nombreExamen, tipoExamen, unidadMedida, valorReferencia, observacion } = req.body;
+  const {
+    nombreExamen,
+    tipoExamen,
+    unidadMedida,
+    valorReferencia,
+    resultadoPrincipal,
+    resultadoUnidad,
+    referenciaInferior,
+    referenciaSuperior,
+    observacionTextract,
+    observacion
+  } = req.body;
   if (!nombreExamen || !tipoExamen) {
     return res.status(400).json({ success: false, message: 'nombreExamen y tipoExamen son requeridos' });
   }
@@ -988,8 +1040,28 @@ app.post('/api/consultations/:id/exams', async (req, res) => {
     }
     const idPaciente = cons[0].idPaciente;
     const [insertExamen] = await conn.query(
-      `INSERT INTO Examen (nombreExamen, tipoExamen, unidadMedida, valorReferencia) VALUES (?, ?, ?, ?)`,
-      [nombreExamen, tipoExamen, unidadMedida || null, valorReferencia || null]
+      `INSERT INTO Examen (
+        nombreExamen,
+        tipoExamen,
+        unidadMedida,
+        valorReferencia,
+        resultadoPrincipal,
+        resultadoUnidad,
+        referenciaInferior,
+        referenciaSuperior,
+        observacionTextract
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nombreExamen,
+        tipoExamen,
+        unidadMedida || null,
+        valorReferencia || null,
+        resultadoPrincipal || null,
+        resultadoUnidad || null,
+        referenciaInferior || null,
+        referenciaSuperior || null,
+        observacionTextract || null
+      ]
     );
     const nuevoIdExamen = insertExamen.insertId;
     await conn.query(
@@ -999,6 +1071,9 @@ app.post('/api/consultations/:id/exams', async (req, res) => {
     await conn.commit();
     const [rows] = await db.query(
       `SELECT e.idExamen, e.nombreExamen, e.tipoExamen, e.unidadMedida, e.valorReferencia,
+              e.resultadoPrincipal, e.resultadoUnidad, e.referenciaInferior, e.referenciaSuperior,
+              e.observacionTextract, e.textractTexto, e.textractCampos, e.textractTablas,
+              e.textractConfianza, e.textractFecha,
               ce.fecha, ce.observacion, c.idConsulta, c.motivo, c.idPaciente
        FROM Examen e
        INNER JOIN ConsultaExamen ce ON e.idExamen = ce.idExamen
@@ -1669,6 +1744,28 @@ app.post('/api/consultations/:id/exams/:examId/analyze', async (req, res) => {
       console.log(`Simulación - Confianza: ${analisis.confianza}%`);
     }
 
+    try {
+      await db.query(
+        `UPDATE Examen 
+         SET textractTexto = ?,
+             textractCampos = ?,
+             textractTablas = ?,
+             textractConfianza = ?,
+             textractFecha = NOW(),
+             observacionTextract = COALESCE(observacionTextract, 'Análisis Textract pendiente de confirmación')
+         WHERE idExamen = ?`,
+        [
+          analisis.texto,
+          JSON.stringify(analisis.camposDetectados || []),
+          JSON.stringify(analisis.tablas || []),
+          analisis.confianza || null,
+          examId
+        ]
+      );
+    } catch (persistError) {
+      console.warn('No se pudo persistir el resultado de Textract en Examen:', persistError.message);
+    }
+
     res.json({
       success: true,
       data: {
@@ -1792,24 +1889,35 @@ app.put('/api/consultations/:id/exams/:examId/apply-suggestions', async (req, re
 
     // También actualizar el examen principal si hay campos relevantes
     const camposExamen = extraerCamposExamen(sugerenciasAplicadas);
-    if (Object.keys(camposExamen).length > 0) {
-      await db.query(
-        `UPDATE Examen 
-         SET nombreExamen = COALESCE(?, nombreExamen),
-             tipoExamen = COALESCE(?, tipoExamen),
-             unidadMedida = COALESCE(?, unidadMedida),
-             valorReferencia = COALESCE(?, valorReferencia),
-             updated_at = NOW()
-         WHERE idExamen = ?`,
-        [
-          camposExamen.nombreExamen,
-          camposExamen.tipoExamen,
-          camposExamen.unidadMedida,
-          camposExamen.valorReferencia,
-          examId
-        ]
-      );
-    }
+    await db.query(
+      `UPDATE Examen 
+       SET nombreExamen = COALESCE(?, nombreExamen),
+           tipoExamen = COALESCE(?, tipoExamen),
+           unidadMedida = COALESCE(?, unidadMedida),
+           valorReferencia = COALESCE(?, valorReferencia),
+           resultadoPrincipal = COALESCE(?, resultadoPrincipal),
+           resultadoUnidad = COALESCE(?, resultadoUnidad),
+           referenciaInferior = COALESCE(?, referenciaInferior),
+           referenciaSuperior = COALESCE(?, referenciaSuperior),
+           observacionTextract = ?,
+           textractCampos = ?,
+           textractFecha = NOW(),
+           updated_at = NOW()
+       WHERE idExamen = ?`,
+      [
+        camposExamen.nombreExamen || null,
+        camposExamen.tipoExamen || null,
+        camposExamen.unidadMedida || null,
+        camposExamen.valorReferencia || null,
+        camposExamen.resultadoPrincipal || null,
+        camposExamen.resultadoUnidad || null,
+        camposExamen.referenciaInferior || null,
+        camposExamen.referenciaSuperior || null,
+        sugerenciasTexto || null,
+        JSON.stringify(sugerenciasAplicadas || {}),
+        examId
+      ]
+    );
 
     console.log(`Sugerencias aplicadas y examen actualizado`);
 
@@ -1934,24 +2042,95 @@ Resultados dentro de parámetros normales. Control rutinario en 6 meses.
 /**
  * Extraer campos relevantes para la tabla Examen
  */
-function extraerCamposExamen(sugerenciasAplicadas) {
+function extraerCamposExamen(sugerenciasAplicadas = {}) {
   const campos = {};
+
+  if (!sugerenciasAplicadas || typeof sugerenciasAplicadas !== 'object') {
+    return campos;
+  }
   
   Object.entries(sugerenciasAplicadas).forEach(([campo, valor]) => {
+    if (valor === undefined || valor === null) {
+      return;
+    }
+
     const campoLower = campo.toLowerCase();
+    const valorTexto = String(valor).trim();
     
     if (campoLower.includes('nombre') && campoLower.includes('examen')) {
-      campos.nombreExamen = valor;
-    } else if (campoLower.includes('tipo') && campoLower.includes('examen')) {
-      campos.tipoExamen = valor;
-    } else if (campoLower.includes('unidad')) {
-      campos.unidadMedida = valor;
-    } else if (campoLower.includes('referencia')) {
-      campos.valorReferencia = valor;
+      campos.nombreExamen = valorTexto;
+      return;
+    }
+
+    if (campoLower.includes('tipo') && campoLower.includes('examen')) {
+      campos.tipoExamen = valorTexto;
+      return;
+    }
+
+    if (campoLower.includes('unidad')) {
+      campos.unidadMedida = valorTexto;
+      campos.resultadoUnidad = campos.resultadoUnidad || valorTexto;
+      return;
+    }
+
+    if (campoLower.includes('referencia') || campoLower.includes('rango')) {
+      campos.valorReferencia = valorTexto;
+      const { inferior, superior } = dividirRangoReferencia(valorTexto);
+      if (inferior) {
+        campos.referenciaInferior = inferior;
+      }
+      if (superior) {
+        campos.referenciaSuperior = superior;
+      }
+      return;
+    }
+
+    if (!campos.resultadoPrincipal && esValorMedico(valorTexto)) {
+      campos.resultadoPrincipal = normalizarValorNumerico(valorTexto);
+      return;
     }
   });
 
   return campos;
+}
+
+function dividirRangoReferencia(valor) {
+  if (!valor) {
+    return { inferior: null, superior: null };
+  }
+
+  const partes = valor
+    .replace(/<|>|≤|≥/g, '')
+    .split(/-|–|a|hasta/i)
+    .map(p => p.trim())
+    .filter(Boolean);
+
+  if (partes.length >= 2) {
+    return {
+      inferior: normalizarValorNumerico(partes[0]),
+      superior: normalizarValorNumerico(partes[1])
+    };
+  }
+
+  return { inferior: null, superior: null };
+}
+
+function esValorMedico(valor) {
+  if (!valor) {
+    return false;
+  }
+
+  const texto = valor.replace(/,/g, '.');
+  return /-?\d+(?:\.\d+)?/.test(texto);
+}
+
+function normalizarValorNumerico(valor) {
+  if (!valor) {
+    return valor;
+  }
+
+  const match = valor.replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/);
+  return match ? match[0] : valor;
 }
 
 /**

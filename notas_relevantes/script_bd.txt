@@ -160,7 +160,18 @@ CREATE TABLE Examen (
     tipoExamen VARCHAR(50),
     unidadMedida VARCHAR(30),
     valorReferencia VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    resultadoPrincipal VARCHAR(100),
+    resultadoUnidad VARCHAR(30),
+    referenciaInferior VARCHAR(50),
+    referenciaSuperior VARCHAR(50),
+    observacionTextract VARCHAR(255),
+    textractTexto LONGTEXT,
+    textractCampos JSON,
+    textractTablas JSON,
+    textractConfianza DECIMAL(5,2),
+    textractFecha TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE ConsultaExamen (
@@ -168,7 +179,13 @@ CREATE TABLE ConsultaExamen (
     idConsulta INT,
     fecha DATE DEFAULT (CURRENT_DATE),
     observacion VARCHAR(200),
+    archivoNombre VARCHAR(255),
+    archivoTipo VARCHAR(50),
+    archivoBlob LONGBLOB,
+    archivoSize INT,
+    archivoFechaSubida TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (idExamen, idConsulta),
     FOREIGN KEY (idExamen) REFERENCES Examen(idExamen),
     FOREIGN KEY (idConsulta) REFERENCES Consulta(idConsulta) ON DELETE CASCADE
@@ -263,6 +280,49 @@ CREATE INDEX idx_medicamento_nombre ON Medicamento(nombreMedicamento);
 CREATE INDEX idx_evolucion_fecha ON Evolucion(fecha);
 CREATE INDEX idx_alergia_paciente ON AlergiaPaciente(idPaciente);
 CREATE INDEX idx_vacuna_paciente ON PacienteVacuna(idPaciente);
+
+
+
+-- ======================
+-- ACTUALIZACIÓN 2025-11-26: CAMPOS TEXTRACT
+-- ======================
+-- Ejecutar estos ALTER sobre bases ya creadas para mantener compatibilidad
+
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS resultadoPrincipal VARCHAR(100) AFTER valorReferencia;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS resultadoUnidad VARCHAR(30) AFTER resultadoPrincipal;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS referenciaInferior VARCHAR(50) AFTER resultadoUnidad;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS referenciaSuperior VARCHAR(50) AFTER referenciaInferior;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS observacionTextract VARCHAR(255) AFTER referenciaSuperior;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS textractTexto LONGTEXT AFTER observacionTextract;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS textractCampos JSON AFTER textractTexto;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS textractTablas JSON AFTER textractCampos;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS textractConfianza DECIMAL(5,2) AFTER textractTablas;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS textractFecha TIMESTAMP NULL AFTER textractConfianza;
+ALTER TABLE Examen
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+ALTER TABLE ConsultaExamen
+    ADD COLUMN IF NOT EXISTS archivoNombre VARCHAR(255) AFTER observacion;
+ALTER TABLE ConsultaExamen
+    ADD COLUMN IF NOT EXISTS archivoTipo VARCHAR(50) AFTER archivoNombre;
+ALTER TABLE ConsultaExamen
+    ADD COLUMN IF NOT EXISTS archivoBlob LONGBLOB AFTER archivoTipo;
+ALTER TABLE ConsultaExamen
+    ADD COLUMN IF NOT EXISTS archivoSize INT AFTER archivoBlob;
+ALTER TABLE ConsultaExamen
+    ADD COLUMN IF NOT EXISTS archivoFechaSubida TIMESTAMP NULL AFTER archivoSize;
+ALTER TABLE ConsultaExamen
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 
 
 

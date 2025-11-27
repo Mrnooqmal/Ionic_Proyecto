@@ -289,12 +289,60 @@ Resultados dentro de parámetros normales. Control rutinario en 6 meses.
         mapeo.tipoExamen = campo.valor;
       } else if (nombreLower.includes('unidad')) {
         mapeo.unidadMedida = campo.valor;
+        mapeo.resultadoUnidad = campo.valor;
       } else if (nombreLower.includes('referencia')) {
         mapeo.valorReferencia = campo.valor;
+        const rango = this.dividirRangoReferencia(campo.valor);
+        if (rango.inferior) {
+          mapeo.referenciaInferior = rango.inferior;
+        }
+        if (rango.superior) {
+          mapeo.referenciaSuperior = rango.superior;
+        }
       } else if (nombreLower.includes('observacion')) {
         mapeo.observacion = campo.valor;
       }
+
+      if (!mapeo.resultadoPrincipal && this.esValorNumericoMedico(campo.valor)) {
+        mapeo.resultadoPrincipal = this.normalizarNumero(campo.valor);
+      }
     });
     return mapeo;
+  }
+
+  private dividirRangoReferencia(valor: string) {
+    if (!valor) {
+      return { inferior: null, superior: null };
+    }
+
+    const partes = valor
+      .replace(/<|>|≤|≥/g, '')
+      .split(/-|–|a|hasta/i)
+      .map(part => part.trim())
+      .filter(part => part.length > 0);
+
+    if (partes.length >= 2) {
+      return {
+        inferior: this.normalizarNumero(partes[0]),
+        superior: this.normalizarNumero(partes[1])
+      };
+    }
+
+    return { inferior: null, superior: null };
+  }
+
+  private esValorNumericoMedico(valor: string): boolean {
+    if (!valor) {
+      return false;
+    }
+    return /-?\d+(?:[.,]\d+)?/.test(valor);
+  }
+
+  private normalizarNumero(valor: string): string {
+    if (!valor) {
+      return valor;
+    }
+    const match = valor.replace(/,/g, '.').match(/-?\d+(?:\.\d+)?/);
+    return match ? match[0] : valor;
   }
 }

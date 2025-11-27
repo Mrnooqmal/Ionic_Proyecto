@@ -29,6 +29,16 @@ export interface Examen {
   estado: 'pendiente' | 'completado' | 'anulado';
   created_at?: string;
   updated_at?: string;
+  resultadoPrincipal?: string;
+  resultadoUnidad?: string;
+  referenciaInferior?: string;
+  referenciaSuperior?: string;
+  observacionTextract?: string;
+  textractTexto?: string;
+  textractCampos?: any;
+  textractTablas?: any;
+  textractConfianza?: number;
+  textractFecha?: string;
 }
 
 // Examen básico para creación manual (sin estructura de resultados complejos todavía)
@@ -234,7 +244,34 @@ export class ExamenesService extends BaseMysqlService {
       archivoSize: raw.archivoSize,
       estado: raw.estado || 'completado',
       created_at: raw.created_at,
-      updated_at: raw.updated_at
+      updated_at: raw.updated_at,
+      resultadoPrincipal: raw.resultadoPrincipal,
+      resultadoUnidad: raw.resultadoUnidad,
+      referenciaInferior: raw.referenciaInferior,
+      referenciaSuperior: raw.referenciaSuperior,
+      observacionTextract: raw.observacionTextract,
+      textractTexto: raw.textractTexto,
+      textractCampos: this.parseJsonField(raw.textractCampos),
+      textractTablas: this.parseJsonField(raw.textractTablas),
+      textractConfianza: raw.textractConfianza,
+      textractFecha: raw.textractFecha
     };
+  }
+
+  private parseJsonField<T>(valor: any): T | undefined {
+    if (!valor) {
+      return undefined;
+    }
+
+    if (typeof valor === 'object') {
+      return valor as T;
+    }
+
+    try {
+      return JSON.parse(valor) as T;
+    } catch (error) {
+      console.warn('No se pudo parsear el campo JSON de examen:', error);
+      return undefined;
+    }
   }
 }

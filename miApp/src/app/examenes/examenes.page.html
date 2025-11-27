@@ -126,6 +126,33 @@
             <p>{{ selectedExamen.notas }}</p>
           </div>
 
+          <div class="detail-textract" *ngIf="selectedExamen.resultadoPrincipal || selectedExamen.observacionTextract || selectedExamen.referenciaInferior || selectedExamen.referenciaSuperior">
+            <label>Resumen del documento</label>
+            <div class="textract-grid">
+              <div *ngIf="selectedExamen.resultadoPrincipal">
+                <span class="label">Resultado principal</span>
+                <p>{{ selectedExamen.resultadoPrincipal }} <small *ngIf="selectedExamen.resultadoUnidad">{{ selectedExamen.resultadoUnidad }}</small></p>
+              </div>
+              <div *ngIf="selectedExamen.referenciaInferior || selectedExamen.referenciaSuperior">
+                <span class="label">Rango referencia</span>
+                <p>
+                  {{ selectedExamen.referenciaInferior || '?' }} - {{ selectedExamen.referenciaSuperior || '?' }}
+                  <small *ngIf="selectedExamen.resultadoUnidad">{{ selectedExamen.resultadoUnidad }}</small>
+                </p>
+              </div>
+              <div *ngIf="selectedExamen.textractConfianza">
+                <span class="label">Confianza Textract</span>
+                <ion-chip color="medium" size="small">
+                  <ion-icon name="star-outline"></ion-icon>
+                  <ion-label>{{ selectedExamen.textractConfianza }}%</ion-label>
+                </ion-chip>
+              </div>
+            </div>
+            <p class="textract-note" *ngIf="selectedExamen.observacionTextract">
+              {{ selectedExamen.observacionTextract }}
+            </p>
+          </div>
+
           <div class="detail-results" *ngIf="selectedExamen.resultados?.length">
             <label>Resultados</label>
             <div class="result-row" *ngFor="let resultado of selectedExamen.resultados">
